@@ -1,13 +1,22 @@
-﻿namespace EasyScheduler.Tiny
+﻿using System.Collections.Concurrent;
+using System.Linq;
+
+namespace EasyScheduler.Tiny
 {
     public class CronScheduler: IScheduler
     {
         private JobStore _JobStore;
         private TiggerStore _TiggerStore;
 
+        public CronScheduler()
+        {
+            _JobStore = new JobStore();
+            _TiggerStore = new TiggerStore();
+        }
+
         public IJob GetJob(string jobName)
         {
-            throw new System.NotImplementedException();
+            return _JobStore.Get(jobName);
         }
 
         public ITrigger GetTrigger(string triggerName)
@@ -17,7 +26,7 @@
 
         public void Schedule(IJob job, ITrigger trigger)
         {
-            throw new System.NotImplementedException();
+            _JobStore.Add(job);
         }
 
         public void Disable(string jobName)
@@ -51,11 +60,27 @@
         }
     }
 
-    internal class TiggerStore
+    public class TiggerStore
     {
     }
 
-    internal class JobStore
+    public class JobStore
     {
+        private static ConcurrentBag<IJob> _Jobs;
+
+        static JobStore()
+        {
+            _Jobs = new ConcurrentBag<IJob>();
+        }
+
+        public IJob Get(string jobName)
+        {
+            return _Jobs.FirstOrDefault(x => x.JobName == jobName);
+        }
+
+        public void Add(IJob job)
+        {
+            _Jobs.Add(job);
+        }
     }
 }

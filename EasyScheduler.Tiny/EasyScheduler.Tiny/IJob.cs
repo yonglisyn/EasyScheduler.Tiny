@@ -2,9 +2,7 @@
 {
     public interface IJob
     {
-        string TriggerName { get; }
-        string Description { get; }
-        JobFireHistory GetJobFireHistory(DateTimeRange range);
+        string JobName { get; }
         void Excecute();
     }
 }
