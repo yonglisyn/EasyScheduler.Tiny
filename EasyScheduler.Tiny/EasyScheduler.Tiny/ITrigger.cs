@@ -9,5 +9,6 @@ namespace EasyScheduler.Tiny
         DateTime FirstFireTime { get; }
         DateTime? LastFireTime { get; }
         DateTime GetNextFireTime();
+        DateTime CurrentFireTime { get; set; }
     }
 }

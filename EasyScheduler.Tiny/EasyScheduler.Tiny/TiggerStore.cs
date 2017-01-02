@@ -30,6 +30,7 @@ namespace EasyScheduler.Tiny
                 _Triggers.Where(x => DateTime.Compare(x.GetNextFireTime(), maxNextFireTime) < 0 && x.ReadyToFire)
                     .ToList();
             triggersToBeFired.ForEach(trigger=>trigger.ReadyToFire = false);
+            triggersToBeFired.ForEach(trigger=>trigger.CurrentFireTime = trigger.GetNextFireTime());
             return triggersToBeFired;   
         }
 

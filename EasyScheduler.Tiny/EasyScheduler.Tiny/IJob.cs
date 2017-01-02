@@ -3,6 +3,11 @@
     public interface IJob
     {
         string JobName { get; }
-        void Excecute();
+        JobExcecutionResult Excecute();
+    }
+
+    public class JobExcecutionResult
+    {
+        public static JobExcecutionResult Success { get; set; }
     }
 }

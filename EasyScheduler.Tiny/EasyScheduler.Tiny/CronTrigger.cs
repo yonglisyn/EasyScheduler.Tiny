@@ -24,5 +24,7 @@ namespace EasyScheduler.Tiny
         {
             return _CronInstance.GetNextOccurrence(DateTime.Now);
         }
+
+        public DateTime CurrentFireTime { get;  set; }
     }
 }
