@@ -1,7 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Linq;
-
-namespace EasyScheduler.Tiny
+﻿namespace EasyScheduler.Tiny
 {
     public class CronScheduler: IScheduler
     {
@@ -12,6 +9,7 @@ namespace EasyScheduler.Tiny
         {
             _JobStore = new JobStore();
             _TiggerStore = new TiggerStore();
+
         }
 
         public IJob GetJob(string jobName)
@@ -19,14 +17,15 @@ namespace EasyScheduler.Tiny
             return _JobStore.Get(jobName);
         }
 
-        public ITrigger GetTrigger(string triggerName)
+        public ITrigger GetTrigger(string jobName)
         {
-            throw new System.NotImplementedException();
+            return _TiggerStore.GetTriggerBy(jobName);
         }
 
         public void Schedule(IJob job, ITrigger trigger)
         {
             _JobStore.Add(job);
+            _TiggerStore.Add(trigger);
         }
 
         public void Disable(string jobName)
@@ -57,30 +56,6 @@ namespace EasyScheduler.Tiny
         public void Pause()
         {
             throw new System.NotImplementedException();
-        }
-    }
-
-    public class TiggerStore
-    {
-    }
-
-    public class JobStore
-    {
-        private static ConcurrentBag<IJob> _Jobs;
-
-        static JobStore()
-        {
-            _Jobs = new ConcurrentBag<IJob>();
-        }
-
-        public IJob Get(string jobName)
-        {
-            return _Jobs.FirstOrDefault(x => x.JobName == jobName);
-        }
-
-        public void Add(IJob job)
-        {
-            _Jobs.Add(job);
         }
     }
 }
