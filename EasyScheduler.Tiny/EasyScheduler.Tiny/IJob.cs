@@ -1,9 +1,11 @@
-﻿namespace EasyScheduler.Tiny
+﻿using System.Threading.Tasks;
+
+namespace EasyScheduler.Tiny
 {
     public interface IJob
     {
         string JobName { get; }
-        JobExcecutionResult Excecute();
+        Task<JobExcecutionResult> Excecute();
     }
 
     public class JobExcecutionResult

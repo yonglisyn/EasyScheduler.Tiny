@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -71,7 +68,9 @@ namespace EasyScheduler.Tiny
                 maxNextFireTime = maxNextFireTime + timeSpan;
                 var triggersToBeFired = _TiggerStore.GetTriggersToBeFired(maxNextFireTime);
                 var jobExecutionList = _JobStore.GetJobsToBeExcuted(triggersToBeFired);
-                _TaskDeliveryManager.Deliver(jobExecutionList, triggersToBeFired);
+                Task.Factory.StartNew(() => _TaskDeliveryManager.Deliver(jobExecutionList, triggersToBeFired),
+                    TaskCreationOptions.LongRunning);
+                    //.Run(()=>);
                 Thread.Sleep(timeSpan);
             }
         }
@@ -84,48 +83,6 @@ namespace EasyScheduler.Tiny
         public void Pause()
         {
             throw new System.NotImplementedException();
-        }
-    }
-
-    internal class TaskDeliveryManager
-    {
-        private List<Task> _Tasks; 
-        public async void Deliver(List<IJob> jobExecutionList, List<ITrigger> triggersToBeFired)
-        {
-            while (jobExecutionList.Count>0)
-            {
-                foreach (var trigger in triggersToBeFired)
-                {
-                    var job = jobExecutionList.First(y => y.JobName == trigger.JobName);
-                    if (TryDeliver(trigger, job))
-                    {
-                        jobExecutionList.Remove(job);
-                        triggersToBeFired.Remove(trigger);
-                    }
-                }
-                Thread.Sleep(1000);
-            }
-            await Task.WhenAll(_Tasks.ToArray());
-        }
-
-        private bool TryDeliver(ITrigger trigger, IJob job)
-        {
-            var now = DateTime.Now;
-            var triggerTime = trigger.CurrentFireTime;
-            if (triggerTime.AddSeconds(1) >= now && triggerTime.AddSeconds(-1) <= now)
-            {
-                var task =
-                    Task.Run(() => job.Excecute())
-                        .ContinueWith(jobExcecution => NotifyJobListeners(jobExcecution.Result));
-                _Tasks.Add(task);
-                return true;
-            }
-            return false;
-        }
-
-        private void NotifyJobListeners(JobExcecutionResult result)
-        {
-            
         }
     }
 
