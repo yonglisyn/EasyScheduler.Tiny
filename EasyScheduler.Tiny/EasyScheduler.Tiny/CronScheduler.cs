@@ -10,13 +10,15 @@ namespace EasyScheduler.Tiny
         private JobStore _JobStore;
         private TiggerStore _TiggerStore;
         private SchedulerStatus _SchedulerStatus;
-        private TaskDeliveryManager _TaskDeliveryManager;
+        private readonly TaskDeliveryManager _TaskDeliveryManager;
+        private readonly SchedulerSetting _SchedulerSetting;
 
-        public CronScheduler()
+        public CronScheduler(SchedulerSetting schedulerSetting, TaskDeliveryManager taskDeliveryManager)
         {
+            _SchedulerSetting = schedulerSetting;
+            _TaskDeliveryManager = taskDeliveryManager;
             _JobStore = new JobStore();
             _TiggerStore = new TiggerStore();
-            _TaskDeliveryManager = new TaskDeliveryManager();
         }
 
         public IJob GetJob(string jobName)
@@ -64,14 +66,12 @@ namespace EasyScheduler.Tiny
             var maxNextFireTime = DateTime.Now;
             while (_SchedulerStatus == SchedulerStatus.Running)
             {
-                var timeSpan = new TimeSpan(0, 1, 0);
-                maxNextFireTime = maxNextFireTime + timeSpan;
+                maxNextFireTime = maxNextFireTime + _SchedulerSetting.FetchTriggersRange;
                 var triggersToBeFired = _TiggerStore.GetTriggersToBeFired(maxNextFireTime);
                 var jobExecutionList = _JobStore.GetJobsToBeExcuted(triggersToBeFired);
                 Task.Factory.StartNew(() => _TaskDeliveryManager.Deliver(jobExecutionList, triggersToBeFired),
                     TaskCreationOptions.LongRunning);
-                    //.Run(()=>);
-                Thread.Sleep(timeSpan);
+                Thread.Sleep(_SchedulerSetting.SchedulerIdleCycle);
             }
         }
 
@@ -83,6 +83,25 @@ namespace EasyScheduler.Tiny
         public void Pause()
         {
             throw new System.NotImplementedException();
+        }
+    }
+
+    public class SchedulerSetting
+    {
+        private readonly TimeSpan _FetchTriggersRange;
+        private readonly TimeSpan _SchedulerIdleCycle;
+
+        public TimeSpan FetchTriggersRange { get { return _FetchTriggersRange; } }
+        public TimeSpan SchedulerIdleCycle { get { return _SchedulerIdleCycle; } }
+        public SchedulerSetting(TimeSpan fetchTriggersRange, TimeSpan schedulerIdleCycle)
+        {
+            _FetchTriggersRange = fetchTriggersRange;
+            _SchedulerIdleCycle = schedulerIdleCycle;
+        }
+
+        public static SchedulerSetting Default()
+        {
+            return new SchedulerSetting(new TimeSpan(0,1,0),new TimeSpan(0,1,0));
         }
     }
 
