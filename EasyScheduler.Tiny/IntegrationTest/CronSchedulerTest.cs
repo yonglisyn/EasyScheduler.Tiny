@@ -10,8 +10,8 @@ namespace IntegrationTest
     [TestFixture]
     public class CronSchedulerTest
     {
-        private static SchedulerSetting _SchedulerSetting = SchedulerSetting.Default();
-        private static TaskDeliveryManagerSetting _TaskDeliveryManagerSetting = TaskDeliveryManagerSetting.Default();
+        private readonly SchedulerSetting _SchedulerSetting = SchedulerSetting.Default();
+        private readonly TaskDeliveryManagerSetting _TaskDeliveryManagerSetting = TaskDeliveryManagerSetting.Default();
         [Test]
         public void ScheduleJob_ShouldAddJobToJobStore_And_ShouldAddTriggerToTriggerStore()
         {
@@ -55,7 +55,7 @@ namespace IntegrationTest
         public bool ReadyToFire { get; set; }
         public DateTime FirstFireTime { get; private set; }
         public DateTime? LastFireTime { get; private set; }
-        public DateTime GetNextFireTime()
+        public DateTime GetNextFireTime(DateTime baseValue)
         {
             throw new NotImplementedException();
         }

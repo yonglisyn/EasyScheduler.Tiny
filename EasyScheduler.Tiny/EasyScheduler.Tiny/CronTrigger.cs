@@ -20,9 +20,9 @@ namespace EasyScheduler.Tiny
         public bool ReadyToFire { get;  set; }
         public DateTime FirstFireTime { get; private set; }
         public DateTime? LastFireTime { get; private set; }
-        public DateTime GetNextFireTime()
+        public DateTime GetNextFireTime(DateTime baseValue)
         {
-            return _CronInstance.GetNextOccurrence(DateTime.Now);
+            return _CronInstance.GetNextOccurrence(baseValue);
         }
 
         public DateTime CurrentFireTime { get;  set; }

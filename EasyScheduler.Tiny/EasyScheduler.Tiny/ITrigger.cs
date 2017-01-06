@@ -8,7 +8,7 @@ namespace EasyScheduler.Tiny
         bool ReadyToFire { get; set; }
         DateTime FirstFireTime { get; }
         DateTime? LastFireTime { get; }
-        DateTime GetNextFireTime();
+        DateTime GetNextFireTime(DateTime baseValue);
         DateTime CurrentFireTime { get; set; }
     }
 }

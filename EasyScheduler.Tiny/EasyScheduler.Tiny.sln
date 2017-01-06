@@ -5,7 +5,9 @@ VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyScheduler.Tiny", "EasyScheduler.Tiny\EasyScheduler.Tiny.csproj", "{52CA3170-4DDC-4E2B-BBDE-E0198CFBE6E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTest", "IntegrationTest\IntegrationTest.csproj", "{76FF6820-5D1A-48F0-961C-18E8DBF4917C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyScheduler.Tiny.IntegrationTest", "IntegrationTest\EasyScheduler.Tiny.IntegrationTest.csproj", "{76FF6820-5D1A-48F0-961C-18E8DBF4917C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyScheduler.Tiny.UnitTest", "UnitTest\EasyScheduler.Tiny.UnitTest.csproj", "{577A7306-3A4B-4F0A-BDEA-FCFAD54BA097}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{76FF6820-5D1A-48F0-961C-18E8DBF4917C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76FF6820-5D1A-48F0-961C-18E8DBF4917C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{76FF6820-5D1A-48F0-961C-18E8DBF4917C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{577A7306-3A4B-4F0A-BDEA-FCFAD54BA097}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{577A7306-3A4B-4F0A-BDEA-FCFAD54BA097}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{577A7306-3A4B-4F0A-BDEA-FCFAD54BA097}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{577A7306-3A4B-4F0A-BDEA-FCFAD54BA097}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

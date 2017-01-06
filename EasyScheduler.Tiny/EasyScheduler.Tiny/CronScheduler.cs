@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,7 +10,7 @@ namespace EasyScheduler.Tiny
     {
         private Thread _Thread;
         private JobStore _JobStore;
-        private TiggerStore _TiggerStore;
+        private TriggerStore _TriggerStore;
         private SchedulerStatus _SchedulerStatus;
         private readonly TaskDeliveryManager _TaskDeliveryManager;
         private readonly SchedulerSetting _SchedulerSetting;
@@ -18,7 +20,7 @@ namespace EasyScheduler.Tiny
             _SchedulerSetting = schedulerSetting;
             _TaskDeliveryManager = taskDeliveryManager;
             _JobStore = new JobStore();
-            _TiggerStore = new TiggerStore();
+            _TriggerStore = new TriggerStore();
         }
 
         public IJob GetJob(string jobName)
@@ -28,13 +30,13 @@ namespace EasyScheduler.Tiny
 
         public ITrigger GetTrigger(string jobName)
         {
-            return _TiggerStore.GetTriggerBy(jobName);
+            return _TriggerStore.GetTriggerBy(jobName);
         }
 
         public void Schedule(IJob job, ITrigger trigger)
         {
             _JobStore.Add(job);
-            _TiggerStore.Add(trigger);
+            _TriggerStore.TryAdd(trigger);
         }
 
         public void Disable(string jobName)
@@ -63,15 +65,27 @@ namespace EasyScheduler.Tiny
         private void Run()
         {
             _SchedulerStatus = SchedulerStatus.Running;
-            var maxNextFireTime = DateTime.Now;
+            var maxNextFireTime = DateTime.Now+_SchedulerSetting.FetchTriggersRange;
+            var minNextFireTime = DateTime.Now;
             while (_SchedulerStatus == SchedulerStatus.Running)
             {
+                List<ITrigger> triggersToBeFired;
+                minNextFireTime = maxNextFireTime;
                 maxNextFireTime = maxNextFireTime + _SchedulerSetting.FetchTriggersRange;
-                var triggersToBeFired = _TiggerStore.GetTriggersToBeFired(maxNextFireTime);
+                if (!_TriggerStore.TryGetTriggersToBeFired(minNextFireTime, maxNextFireTime, out triggersToBeFired))
+                {
+                    continue;
+                }
+                //record time span between this fetch and next fetch; stop scheduler if this time span larger than FetchTriggersRange
+                var timeChecker = new Stopwatch();
+                timeChecker.Start();
                 var jobExecutionList = _JobStore.GetJobsToBeExcuted(triggersToBeFired);
                 Task.Factory.StartNew(() => _TaskDeliveryManager.Deliver(jobExecutionList, triggersToBeFired),
                     TaskCreationOptions.LongRunning);
-                Thread.Sleep(_SchedulerSetting.SchedulerIdleCycle);
+                Thread.Sleep(_SchedulerSetting.SchedulerIdleTime);
+                timeChecker.Stop();
+                if(timeChecker.Elapsed > _SchedulerSetting.FetchTriggersRange)
+                { _SchedulerStatus = SchedulerStatus.Stopped;}
             }
         }
 
@@ -89,19 +103,19 @@ namespace EasyScheduler.Tiny
     public class SchedulerSetting
     {
         private readonly TimeSpan _FetchTriggersRange;
-        private readonly TimeSpan _SchedulerIdleCycle;
+        private readonly TimeSpan _SchedulerIdleTime;
 
         public TimeSpan FetchTriggersRange { get { return _FetchTriggersRange; } }
-        public TimeSpan SchedulerIdleCycle { get { return _SchedulerIdleCycle; } }
-        public SchedulerSetting(TimeSpan fetchTriggersRange, TimeSpan schedulerIdleCycle)
+        public TimeSpan SchedulerIdleTime { get { return _SchedulerIdleTime; } }
+        public SchedulerSetting(TimeSpan fetchTriggersRange, TimeSpan schedulerIdleTime)
         {
             _FetchTriggersRange = fetchTriggersRange;
-            _SchedulerIdleCycle = schedulerIdleCycle;
+            _SchedulerIdleTime = schedulerIdleTime;
         }
 
         public static SchedulerSetting Default()
         {
-            return new SchedulerSetting(new TimeSpan(0,1,0),new TimeSpan(0,1,0));
+            return new SchedulerSetting(new TimeSpan(0,5,0),new TimeSpan(0,0,10));
         }
     }
 
