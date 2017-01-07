@@ -7,9 +7,9 @@ namespace EasyScheduler.Tiny
 {
     internal class TriggerStore
     {
-        private static ConcurrentDictionary<string,ITrigger> _Triggers;
+        private ConcurrentDictionary<string,ITrigger> _Triggers;
 
-        static TriggerStore()
+        public TriggerStore()
         {
             _Triggers = new ConcurrentDictionary<string, ITrigger>();
         }

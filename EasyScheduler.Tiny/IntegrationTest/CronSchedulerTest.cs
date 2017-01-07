@@ -41,6 +41,19 @@ namespace IntegrationTest
             Assert.IsTrue(1==1);
         }
 
+        [Test]
+        public void OneJobThrowException_Run_ShouldContinue()
+        {
+            IJob job = new SimpleJob(typeof(SimpleJob).ToString(), typeof(SimpleTrigger).ToString());
+            string cronExpression = "0 0/1 * * * * *";
+            ITrigger tigger = new CronTrigger(typeof(SimpleJob).ToString(),cronExpression);
+            var target = new CronScheduler(_SchedulerSetting, new TaskDeliveryManager(_TaskDeliveryManagerSetting, new JobNotificationCenter()));
+            target.Start();
+            target.Schedule(job,tigger);
+            Thread.Sleep(new TimeSpan(0,2,0));
+            Assert.IsTrue(1==1);
+        }
+
     }
 
     public class SimpleTrigger : ITrigger
