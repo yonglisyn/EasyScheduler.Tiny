@@ -23,6 +23,14 @@ namespace EasyScheduler.Tiny
             _TriggerStore = new TriggerStore();
         }
 
+        public CronScheduler()
+        {
+            _SchedulerSetting = SchedulerSetting.Default();
+            _TaskDeliveryManager = new TaskDeliveryManager(TaskDeliveryManagerSetting.Default(), new JobNotificationCenter());
+            _JobStore = new JobStore();
+            _TriggerStore = new TriggerStore();
+        }
+
         public IJob GetJob(string jobName)
         {
             return _JobStore.Get(jobName);
@@ -60,6 +68,7 @@ namespace EasyScheduler.Tiny
             //TODO NotifySchedulerListeners 
             _Thread = new Thread(Run);
             _Thread.Start();
+            _Thread.Join();
         }
 
         private void Run()
@@ -70,12 +79,14 @@ namespace EasyScheduler.Tiny
             while (_SchedulerStatus == SchedulerStatus.Running)
             {
                 List<ITrigger> triggersToBeFired;
-                minNextFireTime = maxNextFireTime;
-                maxNextFireTime = maxNextFireTime + _SchedulerSetting.FetchTriggersRange;
-                if (!_TriggerStore.TryGetTriggersToBeFired(minNextFireTime, maxNextFireTime, out triggersToBeFired))
+                if (!_TriggerStore.TryGetTriggersToBeFired(minNextFireTime, maxNextFireTime, out triggersToBeFired, DateTime.Now))
                 {
+                    minNextFireTime = maxNextFireTime;
+                    maxNextFireTime = maxNextFireTime + _SchedulerSetting.FetchTriggersRange;
                     continue;
                 }
+                minNextFireTime = maxNextFireTime;
+                maxNextFireTime = maxNextFireTime + _SchedulerSetting.FetchTriggersRange;
                 //record time span between this fetch and next fetch; stop scheduler if this time span larger than FetchTriggersRange
                 var timeChecker = new Stopwatch();
                 timeChecker.Start();

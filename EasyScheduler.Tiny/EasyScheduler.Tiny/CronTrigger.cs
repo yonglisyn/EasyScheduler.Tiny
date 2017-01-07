@@ -4,6 +4,14 @@ using NCrontab.Advanced.Enumerations;
 
 namespace EasyScheduler.Tiny
 {
+//    Field name   | Allowed values  | Allowed special characters
+//------------------------------------------------------------
+//Minutes      | 0-59            | * , - /
+//Hours        | 0-23            | * , - /
+//Day of month | 1-31            | * , - / ? L W
+//Month        | 1-12 or JAN-DEC | * , - /
+//Day of week  | 0-6 or SUN-SAT  | * , - / ? L #
+//Year         | 0001–9999       | * , - /
     public class CronTrigger : ITrigger
     {
         private CrontabSchedule _CronInstance;

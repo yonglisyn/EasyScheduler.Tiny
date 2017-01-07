@@ -24,9 +24,8 @@ namespace EasyScheduler.Tiny
             return _Triggers.TryAdd(trigger.JobName, trigger);
         }
 
-        public bool TryGetTriggersToBeFired(DateTime minNextFireTime, DateTime maxNextFireTime, out List<ITrigger> toBeFired)
+        public bool TryGetTriggersToBeFired(DateTime minNextFireTime, DateTime maxNextFireTime, out List<ITrigger> toBeFired, DateTime baseValue)
         {
-            var baseValue = DateTime.Now;
             toBeFired =
                 _Triggers.Values.Where(x => x.GetNextFireTime(baseValue)>=minNextFireTime && x.GetNextFireTime(baseValue)<= maxNextFireTime && x.ReadyToFire)
                     .ToList();
