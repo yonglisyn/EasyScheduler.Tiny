@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using EasyScheduler.Tiny;
+using Moq;
 using NUnit.Framework;
 
 namespace IntegrationTest
@@ -29,7 +30,7 @@ namespace IntegrationTest
         }
 
         [Test]
-        public void Start_WillRunTheMainLoopOfExecutingJobsBasedOnTriggers()
+        public void Start_WillRunTheMainLoopOfExecutingJobs_BasedOnTriggers()
         {
             IJob job = new SimpleJob(typeof(SimpleJob).ToString(), typeof(SimpleTrigger).ToString());
             string cronExpression = "0 0/1 * * * * *";
@@ -37,21 +38,44 @@ namespace IntegrationTest
             var target = new CronScheduler(_SchedulerSetting, new TaskDeliveryManager(_TaskDeliveryManagerSetting, new JobNotificationCenter()));
             target.Start();
             target.Schedule(job,tigger);
-            Thread.Sleep(new TimeSpan(0,2,0));
-            Assert.IsTrue(1==1);
+            
         }
 
         [Test]
         public void OneJobThrowException_Run_ShouldContinue()
         {
-            IJob job = new SimpleJob(typeof(SimpleJob).ToString(), typeof(SimpleTrigger).ToString());
-            string cronExpression = "0 0/1 * * * * *";
-            ITrigger tigger = new CronTrigger(typeof(SimpleJob).ToString(),cronExpression);
+            var jobNormalMoq = new Mock<IJob>();
+            jobNormalMoq.SetupGet(x => x.JobName).Returns("SimpleJob");
+            jobNormalMoq.Setup(x => x.Excecute());
+            IJob jobNormal = jobNormalMoq.Object;
+            IJob jobException = new SimpleJobThrowException(typeof(SimpleJobThrowException).ToString());
+            string cronExpression = "0/3 * * * * * *";
+            ITrigger tigger = new CronTrigger(typeof(SimpleJobThrowException).ToString(), cronExpression);
             var target = new CronScheduler(_SchedulerSetting, new TaskDeliveryManager(_TaskDeliveryManagerSetting, new JobNotificationCenter()));
             target.Start();
-            target.Schedule(job,tigger);
-            Thread.Sleep(new TimeSpan(0,2,0));
-            Assert.IsTrue(1==1);
+            target.Schedule(jobException, tigger);
+            target.Schedule(jobNormal, tigger);
+            Thread.Sleep(new TimeSpan(0,0,5));
+            jobNormalMoq.Verify(x=>x.Excecute(),Times.Once);
+            target.Stop();
+        }
+
+    }
+
+    public class SimpleJobThrowException : IJob
+    {
+        public SimpleJobThrowException(string toString)
+        {
+            JobName = toString;
+        }
+
+        public string JobName { get; private set; }
+
+        public async Task<JobExcecutionResult> Excecute()
+        {
+            await Task.Delay(10);
+            Console.WriteLine("I am fired at " + DateTime.Now.ToString(CultureInfo.InvariantCulture));
+            return JobExcecutionResult.Success;
         }
 
     }

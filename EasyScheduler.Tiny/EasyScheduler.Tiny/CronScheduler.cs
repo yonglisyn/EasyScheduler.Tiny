@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -68,25 +69,24 @@ namespace EasyScheduler.Tiny
             //TODO NotifySchedulerListeners 
             _Thread = new Thread(Run);
             _Thread.Start();
-            _Thread.Join();
         }
 
         private void Run()
         {
             _SchedulerStatus = SchedulerStatus.Running;
-            var maxNextFireTime = DateTime.Now+_SchedulerSetting.FetchTriggersRange;
             var minNextFireTime = DateTime.Now;
+            var maxNextFireTime = minNextFireTime + _SchedulerSetting.FetchTriggersRange;
             while (_SchedulerStatus == SchedulerStatus.Running)
             {
                 List<ITrigger> triggersToBeFired;
                 if (!_TriggerStore.TryGetTriggersToBeFired(minNextFireTime, maxNextFireTime, out triggersToBeFired, DateTime.Now))
                 {
                     minNextFireTime = maxNextFireTime;
-                    maxNextFireTime = maxNextFireTime + _SchedulerSetting.FetchTriggersRange;
+                    maxNextFireTime = minNextFireTime + _SchedulerSetting.FetchTriggersRange;
                     continue;
                 }
-                minNextFireTime = maxNextFireTime;
-                maxNextFireTime = maxNextFireTime + _SchedulerSetting.FetchTriggersRange;
+                minNextFireTime = triggersToBeFired.Min(x=>x.CurrentFireTime);
+                maxNextFireTime = minNextFireTime + _SchedulerSetting.FetchTriggersRange;
                 //record time span between this fetch and next fetch; stop scheduler if this time span larger than FetchTriggersRange
                 var timeChecker = new Stopwatch();
                 timeChecker.Start();
@@ -95,14 +95,17 @@ namespace EasyScheduler.Tiny
                     TaskCreationOptions.LongRunning);
                 Thread.Sleep(_SchedulerSetting.SchedulerIdleTime);
                 timeChecker.Stop();
-                if(timeChecker.Elapsed > _SchedulerSetting.FetchTriggersRange)
-                { _SchedulerStatus = SchedulerStatus.Stopped;}
+                if (timeChecker.Elapsed > _SchedulerSetting.FetchTriggersRange)
+                {
+                    Stop();
+                }
             }
         }
 
         public void Stop()
         {
-            throw new System.NotImplementedException();
+            _SchedulerStatus = SchedulerStatus.Stopped;
+            _Thread.Join();
         }
 
         public void Pause()

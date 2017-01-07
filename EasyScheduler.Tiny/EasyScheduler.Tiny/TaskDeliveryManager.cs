@@ -20,38 +20,49 @@ namespace EasyScheduler.Tiny
 
         public async void Deliver(List<IJob> jobExecutionList, List<ITrigger> triggersToBeFired)
         {
-            while (jobExecutionList.Count>0)
+            var deliverTask = new List<Task>();
+            foreach (var trigger in triggersToBeFired)
             {
-                foreach (var trigger in triggersToBeFired)
-                {
-                    var job = jobExecutionList.First(y => y.JobName == trigger.JobName);
-                    if (TryDeliver(trigger, job))
-                    {
-                        _JobNotificationCenter.BroadCast(JobExcecutionStatus.Running, trigger.CurrentFireTime);
-                        jobExecutionList.Remove(job);
-                        triggersToBeFired.Remove(trigger);
-                    }
-                }
-                Thread.Sleep(_DeliveryManagerSetting.TaskDeliveryIdleCycle);
+                var job = jobExecutionList.First(y => y.JobName == trigger.JobName);
+                deliverTask.Add(Task.Run(() => TryDeliver(trigger, job)));
             }
+            await Task.WhenAll(deliverTask);
             while (_Tasks.Count>0)
             {
-                var task = await Task.WhenAny(_Tasks);
-                _Tasks.Remove(task);
-                NotifyJobListeners(await task);
+                try
+                {
+                    var task = await Task.WhenAny(_Tasks);
+                    _Tasks.Remove(task);
+                    var result = await task;
+                    NotifyJobListeners(result);
+                }
+                catch (Exception)
+                {
+                   //job exception
+                    //todo handle
+                }
             }
         }
 
-        private bool TryDeliver(ITrigger trigger, IJob job)
+        private void TryDeliver(ITrigger trigger, IJob job)
         {
-            var now = DateTime.Now;
             var triggerTime = trigger.CurrentFireTime;
-            if (triggerTime.AddMilliseconds(10) >= now && triggerTime.AddMilliseconds(-10) <= now)
+            while(true)
             {
-                _Tasks.Add(Task.Run(()=>job.Excecute()));
-                return true;
+                var now = DateTime.Now;
+                if (triggerTime >= now.AddMilliseconds(-10) && triggerTime <= now.AddMilliseconds(10))
+                {
+                    _Tasks.Add(Task.Run(() => job.Excecute()));
+                    _JobNotificationCenter.BroadCast(JobExcecutionStatus.Running, trigger.CurrentFireTime);
+                    break;
+                }
+                if (triggerTime < now)
+                {
+                    //todo log job push to start failed
+                    break;
+                }
+                Thread.Sleep(10);
             }
-            return false;
         }
 
         private void NotifyJobListeners(JobExcecutionResult result)
@@ -72,7 +83,7 @@ namespace EasyScheduler.Tiny
     {
         public void BroadCast(JobExcecutionStatus started, DateTime currentFireTime)
         {
-            
+            //todo need to be fire and forget to do not take up time to continue next loop
         }
     }
 

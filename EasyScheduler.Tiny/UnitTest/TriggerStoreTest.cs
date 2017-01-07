@@ -21,7 +21,7 @@ namespace UnitTest
         }
 
         [Test]
-        public void TryGetTriggersToBeFired_ShouldReturnTure_AndGetExpecteTriggers_AndUpdateTrigger()
+        public void TryGetTriggersToBeFired_ShouldReturnTure_AndGetExpectedTriggers_AndUpdateTrigger()
         {
             var target= new TriggerStore();
             string jobName1="TestJob1";
