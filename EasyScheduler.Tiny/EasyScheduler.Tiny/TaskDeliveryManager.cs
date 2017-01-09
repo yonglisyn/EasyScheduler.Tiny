@@ -20,6 +20,8 @@ namespace EasyScheduler.Tiny
 
         public async void Deliver(List<IJob> jobExecutionList, List<ITrigger> triggersToBeFired)
         {
+            //todo Task.Run error handle
+            Console.WriteLine("Deliver 24:"+ DateTime.Now);
             var deliverTask = new List<Task>();
             foreach (var trigger in triggersToBeFired)
             {
@@ -46,18 +48,23 @@ namespace EasyScheduler.Tiny
 
         private void TryDeliver(ITrigger trigger, IJob job)
         {
+            Console.WriteLine("TryDeliver 51:"+DateTime.Now);
+
             var triggerTime = trigger.CurrentFireTime;
-            while(true)
+            Console.WriteLine("TryDeliver 54:"+triggerTime);
+            while (true)
             {
                 var now = DateTime.Now;
                 if (triggerTime >= now.AddMilliseconds(-10) && triggerTime <= now.AddMilliseconds(10))
                 {
-                    _Tasks.Add(Task.Run(() => job.Excecute()));
+                    //Todo check what happens if not async await
+                    _Tasks.Add(Task.Run(async () => await job.ExcecuteAsync()));
                     _JobNotificationCenter.BroadCast(JobExcecutionStatus.Running, trigger.CurrentFireTime);
                     break;
                 }
                 if (triggerTime < now)
                 {
+                    Console.WriteLine("TryDeliver special triggertime " +triggerTime + " now" + now);
                     //todo log job push to start failed
                     break;
                 }

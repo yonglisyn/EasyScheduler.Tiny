@@ -44,6 +44,10 @@ namespace EasyScheduler.Tiny
 
         public void Schedule(IJob job, ITrigger trigger)
         {
+            if (!string.Equals(job.JobName,trigger.JobName,StringComparison.InvariantCultureIgnoreCase))
+            {
+                throw new EasySchedulerException(string.Format("IJob {0} and ITrigger {1} must have same JobName!", job.JobName, trigger.JobName));
+            }
             _JobStore.Add(job);
             _TriggerStore.TryAdd(trigger);
         }
@@ -67,7 +71,11 @@ namespace EasyScheduler.Tiny
         {
             _SchedulerStatus = SchedulerStatus.Started;
             //TODO NotifySchedulerListeners 
+            Console.WriteLine("Start 74 " + DateTime.Now);
+
             _Thread = new Thread(Run);
+            Console.WriteLine("Start 77 " + DateTime.Now);
+
             _Thread.Start();
         }
 
@@ -78,27 +86,27 @@ namespace EasyScheduler.Tiny
             var maxNextFireTime = minNextFireTime + _SchedulerSetting.FetchTriggersRange;
             while (_SchedulerStatus == SchedulerStatus.Running)
             {
+                Console.WriteLine("Run 89 " + DateTime.Now);
+                Console.WriteLine("Run min " + minNextFireTime + " Rum max: " + maxNextFireTime);
                 List<ITrigger> triggersToBeFired;
-                if (!_TriggerStore.TryGetTriggersToBeFired(minNextFireTime, maxNextFireTime, out triggersToBeFired, DateTime.Now))
+                if (!_TriggerStore.TryGetTriggersToBeFired(minNextFireTime, maxNextFireTime, out triggersToBeFired))
                 {
-                    minNextFireTime = maxNextFireTime;
-                    maxNextFireTime = minNextFireTime + _SchedulerSetting.FetchTriggersRange;
+                    Thread.Sleep(new TimeSpan(0,0,10));
+                    minNextFireTime = DateTime.Now;
+                    maxNextFireTime = minNextFireTime + _SchedulerSetting.FetchTriggersRange; 
                     continue;
                 }
+                Console.WriteLine("Run 98 "+DateTime.Now);
                 minNextFireTime = triggersToBeFired.Min(x=>x.CurrentFireTime);
                 maxNextFireTime = minNextFireTime + _SchedulerSetting.FetchTriggersRange;
-                //record time span between this fetch and next fetch; stop scheduler if this time span larger than FetchTriggersRange
-                var timeChecker = new Stopwatch();
-                timeChecker.Start();
+                Console.WriteLine("Run 100 minNextFireTime " + minNextFireTime);
+                Console.WriteLine("Run 101 maxNextFireTime" + maxNextFireTime);
                 var jobExecutionList = _JobStore.GetJobsToBeExcuted(triggersToBeFired);
                 Task.Factory.StartNew(() => _TaskDeliveryManager.Deliver(jobExecutionList, triggersToBeFired),
                     TaskCreationOptions.LongRunning);
-                Thread.Sleep(_SchedulerSetting.SchedulerIdleTime);
-                timeChecker.Stop();
-                if (timeChecker.Elapsed > _SchedulerSetting.FetchTriggersRange)
-                {
-                    Stop();
-                }
+                //todo set trigger ready again
+                Thread.Sleep(minNextFireTime-DateTime.Now);
+               
             }
         }
 

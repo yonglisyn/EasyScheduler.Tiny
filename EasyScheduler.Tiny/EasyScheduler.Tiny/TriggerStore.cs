@@ -24,22 +24,31 @@ namespace EasyScheduler.Tiny
             return _Triggers.TryAdd(trigger.JobName, trigger);
         }
 
-        public bool TryGetTriggersToBeFired(DateTime minNextFireTime, DateTime maxNextFireTime, out List<ITrigger> toBeFired, DateTime baseValue)
+        public bool TryGetTriggersToBeFired(DateTime minNextFireTime, DateTime maxNextFireTime, out List<ITrigger> toBeFired)
         {
+            if (_Triggers.Count == 0)
+            {
+                toBeFired= new List<ITrigger>();
+                return false;
+            }
             toBeFired =
-                _Triggers.Values.Where(x => x.GetNextFireTime(baseValue)>=minNextFireTime && x.GetNextFireTime(baseValue)<= maxNextFireTime && x.ReadyToFire)
+                _Triggers.Values.Where(x => x.GetNextFireTime(minNextFireTime) <= maxNextFireTime && x.ReadyToFire)
                     .ToList();
             if (toBeFired.Count == 0)
             {
+                var tmp = _Triggers.Values.First().GetNextFireTime(minNextFireTime);
+                Console.WriteLine("TryGetTriggersToBeFired " + tmp);
                 return false;
             }
-            toBeFired.ForEach(x=>UpdateTrigger(x,baseValue));
+            toBeFired.ForEach(x => UpdateTrigger(x, minNextFireTime));
             return true;   
         }
 
         private void UpdateTrigger(ITrigger trigger, DateTime baseValue)
         {
+            Console.WriteLine("UpdateTrigger 42: " + trigger.GetNextFireTime(baseValue) + "base value" + baseValue);
             trigger.ReadyToFire = false;
+            //todo review may not need this CurrentFireTime
             trigger.CurrentFireTime = trigger.GetNextFireTime(baseValue);
         }
     }

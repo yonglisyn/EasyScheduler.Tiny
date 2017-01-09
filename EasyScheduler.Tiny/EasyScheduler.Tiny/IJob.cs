@@ -5,7 +5,7 @@ namespace EasyScheduler.Tiny
     public interface IJob
     {
         string JobName { get; }
-        Task<JobExcecutionResult> Excecute();
+        Task<JobExcecutionResult> ExcecuteAsync();
     }
 
     public class JobExcecutionResult

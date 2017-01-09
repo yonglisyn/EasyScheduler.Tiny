@@ -14,7 +14,7 @@ namespace UnitTest
             var target= new TriggerStore();
             List<ITrigger> toBeFired;
             var actual = target.TryGetTriggersToBeFired(new DateTime(2016, 1, 1), new DateTime(2016, 2, 1),
-                out toBeFired, DateTime.Now);
+                out toBeFired);
 
             Assert.AreEqual(false,actual);
             Assert.AreEqual(0,toBeFired.Count);
@@ -35,7 +35,7 @@ namespace UnitTest
 
             List<ITrigger> toBeFired;
             var actual = target.TryGetTriggersToBeFired(new DateTime(2016, 1, 1,0,0,0), new DateTime(2016, 2, 1),
-                out toBeFired, new DateTime(2016, 1, 1, 0, 0, 0));
+                out toBeFired);
 
             Assert.AreEqual(true,actual);
             Assert.AreEqual(1,toBeFired.Count);

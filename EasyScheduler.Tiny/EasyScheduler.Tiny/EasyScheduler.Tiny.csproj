@@ -51,6 +51,7 @@
     <Compile Include="CronScheduler.cs" />
     <Compile Include="CronTrigger.cs" />
     <Compile Include="DateTimeRange.cs" />
+    <Compile Include="EasySchedulerException.cs" />
     <Compile Include="IJob.cs" />
     <Compile Include="IScheduler.cs" />
     <Compile Include="ITrigger.cs" />
@@ -62,6 +63,7 @@
     <Compile Include="TriggerStatus.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

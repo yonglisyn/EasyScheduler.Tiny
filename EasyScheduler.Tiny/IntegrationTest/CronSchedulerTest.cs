@@ -16,29 +16,34 @@ namespace IntegrationTest
         [Test]
         public void ScheduleJob_ShouldAddJobToJobStore_And_ShouldAddTriggerToTriggerStore()
         {
-            IJob job = new SimpleJob(typeof(SimpleJob).ToString(),typeof(SimpleTrigger).ToString());
-            ITrigger trigger = new SimpleTrigger(typeof(SimpleJob).ToString());
+            IJob job = new SimpleJob(typeof(SimpleJob).Name,typeof(SimpleTrigger).ToString());
+            ITrigger trigger = new SimpleTrigger(typeof(SimpleJob).Name);
 
             var target = new CronScheduler(_SchedulerSetting,new TaskDeliveryManager(_TaskDeliveryManagerSetting,new JobNotificationCenter()));
             target.Schedule(job,trigger);
 
-            var resultJob = target.GetJob(typeof (SimpleJob).ToString());
+            var resultJob = target.GetJob(typeof (SimpleJob).Name);
             Assert.AreEqual(resultJob.JobName, job.JobName);
 
-            var resultTrigger = target.GetTrigger(typeof (SimpleJob).ToString());
+            var resultTrigger = target.GetTrigger(typeof (SimpleJob).Name);
             Assert.AreEqual(resultTrigger.JobName,trigger.JobName);
         }
 
         [Test]
         public void Start_WillRunTheMainLoopOfExecutingJobs_BasedOnTriggers()
         {
-            IJob job = new SimpleJob(typeof(SimpleJob).ToString(), typeof(SimpleTrigger).ToString());
-            string cronExpression = "0 0/1 * * * * *";
-            ITrigger tigger = new CronTrigger(typeof(SimpleJob).ToString(),cronExpression);
+            IJob job = new SimpleJob(typeof(SimpleJob).Name,"Trigger");
+            var jobNormalMoq = new Mock<IJob>();
+            jobNormalMoq.SetupGet(x => x.JobName).Returns("SimpleJob");
+            jobNormalMoq.Setup(x => x.ExcecuteAsync());
+            IJob jobNormal = jobNormalMoq.Object;
+            string cronExpression = "0/10 * * * * * *";
+            ITrigger tigger = new CronTrigger("SimpleJob", cronExpression);
             var target = new CronScheduler(_SchedulerSetting, new TaskDeliveryManager(_TaskDeliveryManagerSetting, new JobNotificationCenter()));
-            target.Start();
-            target.Schedule(job,tigger);
-            
+                target.Start();
+                target.Schedule(jobNormal, tigger);
+            Thread.Sleep(new TimeSpan(0,0,20));
+            jobNormalMoq.Verify(x=>x.ExcecuteAsync(),Times.Exactly(1));
         }
 
         [Test]
@@ -46,17 +51,18 @@ namespace IntegrationTest
         {
             var jobNormalMoq = new Mock<IJob>();
             jobNormalMoq.SetupGet(x => x.JobName).Returns("SimpleJob");
-            jobNormalMoq.Setup(x => x.Excecute());
+            jobNormalMoq.Setup(x => x.ExcecuteAsync());
             IJob jobNormal = jobNormalMoq.Object;
             IJob jobException = new SimpleJobThrowException(typeof(SimpleJobThrowException).ToString());
             string cronExpression = "0/3 * * * * * *";
-            ITrigger tigger = new CronTrigger(typeof(SimpleJobThrowException).ToString(), cronExpression);
+            ITrigger tigger = new CronTrigger("SimpleJob", cronExpression);
+            ITrigger tiggerNormal = new CronTrigger("SimpleJob", cronExpression);
             var target = new CronScheduler(_SchedulerSetting, new TaskDeliveryManager(_TaskDeliveryManagerSetting, new JobNotificationCenter()));
             target.Start();
             target.Schedule(jobException, tigger);
-            target.Schedule(jobNormal, tigger);
-            Thread.Sleep(new TimeSpan(0,0,5));
-            jobNormalMoq.Verify(x=>x.Excecute(),Times.Once);
+            target.Schedule(jobNormal, tiggerNormal);
+            Thread.Sleep(new TimeSpan(0,1,0));
+            jobNormalMoq.Verify(x=>x.ExcecuteAsync(),Times.Once);
             target.Stop();
         }
 
@@ -71,7 +77,7 @@ namespace IntegrationTest
 
         public string JobName { get; private set; }
 
-        public async Task<JobExcecutionResult> Excecute()
+        public async Task<JobExcecutionResult> ExcecuteAsync()
         {
             await Task.Delay(10);
             Console.WriteLine("I am fired at " + DateTime.Now.ToString(CultureInfo.InvariantCulture));
@@ -112,7 +118,7 @@ namespace IntegrationTest
 
         public string JobName { get; private set; }
 
-        public async Task<JobExcecutionResult> Excecute()
+        public async Task<JobExcecutionResult> ExcecuteAsync()
         {
             await Task.Delay(10);
             Console.WriteLine("I am fired at "+DateTime.Now.ToString(CultureInfo.InvariantCulture));
