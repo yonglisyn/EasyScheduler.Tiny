@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace EasyScheduler.Tiny
 {
@@ -13,13 +9,14 @@ namespace EasyScheduler.Tiny
         private JobStore _JobStore;
         private TriggerStore _TriggerStore;
         private SchedulerStatus _SchedulerStatus;
-        private readonly TaskDeliveryManager _TaskDeliveryManager;
         private readonly SchedulerSetting _SchedulerSetting;
+        private object _StoreLock = new object();
+        private readonly SchedulerRunner _SchedulerRunner;
 
         public CronScheduler(SchedulerSetting schedulerSetting, TaskDeliveryManager taskDeliveryManager)
         {
             _SchedulerSetting = schedulerSetting;
-            _TaskDeliveryManager = taskDeliveryManager;
+            _SchedulerRunner = new SchedulerRunner(_SchedulerSetting,taskDeliveryManager);
             _JobStore = new JobStore();
             _TriggerStore = new TriggerStore();
         }
@@ -27,7 +24,7 @@ namespace EasyScheduler.Tiny
         public CronScheduler()
         {
             _SchedulerSetting = SchedulerSetting.Default();
-            _TaskDeliveryManager = new TaskDeliveryManager(TaskDeliveryManagerSetting.Default(), new JobNotificationCenter());
+            _SchedulerRunner = new SchedulerRunner(_SchedulerSetting, new TaskDeliveryManager(TaskDeliveryManagerSetting.Default(), new JobNotificationCenter()));
             _JobStore = new JobStore();
             _TriggerStore = new TriggerStore();
         }
@@ -48,8 +45,12 @@ namespace EasyScheduler.Tiny
             {
                 throw new EasySchedulerException(string.Format("IJob {0} and ITrigger {1} must have same JobName!", job.JobName, trigger.JobName));
             }
-            _JobStore.Add(job);
-            _TriggerStore.TryAdd(trigger);
+            lock (_StoreLock)
+            {
+                _JobStore.Add(job);
+                _TriggerStore.TryAdd(trigger);
+            }
+            Console.WriteLine("Scheduled on "+DateTime.Now);
         }
 
         public void Disable(string jobName)
@@ -71,43 +72,9 @@ namespace EasyScheduler.Tiny
         {
             _SchedulerStatus = SchedulerStatus.Started;
             //TODO NotifySchedulerListeners 
-            Console.WriteLine("Start 74 " + DateTime.Now);
-
-            _Thread = new Thread(Run);
-            Console.WriteLine("Start 77 " + DateTime.Now);
-
-            _Thread.Start();
-        }
-
-        private void Run()
-        {
+            _Thread = new Thread(()=>_SchedulerRunner.Run(_JobStore,_TriggerStore));
             _SchedulerStatus = SchedulerStatus.Running;
-            var minNextFireTime = DateTime.Now;
-            var maxNextFireTime = minNextFireTime + _SchedulerSetting.FetchTriggersRange;
-            while (_SchedulerStatus == SchedulerStatus.Running)
-            {
-                Console.WriteLine("Run 89 " + DateTime.Now);
-                Console.WriteLine("Run min " + minNextFireTime + " Rum max: " + maxNextFireTime);
-                List<ITrigger> triggersToBeFired;
-                if (!_TriggerStore.TryGetTriggersToBeFired(minNextFireTime, maxNextFireTime, out triggersToBeFired))
-                {
-                    Thread.Sleep(new TimeSpan(0,0,10));
-                    minNextFireTime = DateTime.Now;
-                    maxNextFireTime = minNextFireTime + _SchedulerSetting.FetchTriggersRange; 
-                    continue;
-                }
-                Console.WriteLine("Run 98 "+DateTime.Now);
-                minNextFireTime = triggersToBeFired.Min(x=>x.CurrentFireTime);
-                maxNextFireTime = minNextFireTime + _SchedulerSetting.FetchTriggersRange;
-                Console.WriteLine("Run 100 minNextFireTime " + minNextFireTime);
-                Console.WriteLine("Run 101 maxNextFireTime" + maxNextFireTime);
-                var jobExecutionList = _JobStore.GetJobsToBeExcuted(triggersToBeFired);
-                Task.Factory.StartNew(() => _TaskDeliveryManager.Deliver(jobExecutionList, triggersToBeFired),
-                    TaskCreationOptions.LongRunning);
-                //todo set trigger ready again
-                Thread.Sleep(minNextFireTime-DateTime.Now);
-               
-            }
+            _Thread.Start();
         }
 
         public void Stop()

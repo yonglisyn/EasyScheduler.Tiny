@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace EasyScheduler.Tiny
 {
-    internal class JobStore
+    public class JobStore
     {
         private ConcurrentBag<IJob> _Jobs;
 

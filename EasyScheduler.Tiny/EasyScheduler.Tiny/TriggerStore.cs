@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace EasyScheduler.Tiny
 {
-    internal class TriggerStore
+    public class TriggerStore
     {
         private ConcurrentDictionary<string,ITrigger> _Triggers;
 
@@ -37,7 +37,7 @@ namespace EasyScheduler.Tiny
             if (toBeFired.Count == 0)
             {
                 var tmp = _Triggers.Values.First().GetNextFireTime(minNextFireTime);
-                Console.WriteLine("TryGetTriggersToBeFired " + tmp);
+                Console.WriteLine("TryGetTriggersToBeFired failed for min: " + tmp);
                 return false;
             }
             toBeFired.ForEach(x => UpdateTrigger(x, minNextFireTime));
@@ -46,7 +46,7 @@ namespace EasyScheduler.Tiny
 
         private void UpdateTrigger(ITrigger trigger, DateTime baseValue)
         {
-            Console.WriteLine("UpdateTrigger 42: " + trigger.GetNextFireTime(baseValue) + "base value" + baseValue);
+            //Console.WriteLine("UpdateTrigger: " + trigger.GetNextFireTime(baseValue) + "base value" + baseValue);
             trigger.ReadyToFire = false;
             //todo review may not need this CurrentFireTime
             trigger.CurrentFireTime = trigger.GetNextFireTime(baseValue);

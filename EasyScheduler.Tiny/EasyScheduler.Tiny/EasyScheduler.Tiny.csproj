@@ -58,6 +58,7 @@
     <Compile Include="JobFireHistory.cs" />
     <Compile Include="JobStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SchedulerRunner.cs" />
     <Compile Include="TaskDeliveryManager.cs" />
     <Compile Include="TriggerStore.cs" />
     <Compile Include="TriggerStatus.cs" />
