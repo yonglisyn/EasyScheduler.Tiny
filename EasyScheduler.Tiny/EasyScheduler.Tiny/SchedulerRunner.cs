@@ -44,8 +44,10 @@ namespace EasyScheduler.Tiny
                 Task.Factory.StartNew(() => _TaskDeliveryManager.Deliver(jobExecutionList, triggersToBeFired),
                     TaskCreationOptions.LongRunning);
                 //todo set trigger ready again
-                Thread.Sleep(minNextFireTime-DateTime.Now);
-               
+                if (minNextFireTime - DateTime.Now > new TimeSpan(0, 0, 1))
+                {
+                    Thread.Sleep(minNextFireTime - DateTime.Now);
+                }
             }
         }
     }

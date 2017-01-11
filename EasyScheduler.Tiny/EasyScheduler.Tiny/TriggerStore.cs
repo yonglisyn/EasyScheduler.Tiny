@@ -16,13 +16,16 @@ namespace EasyScheduler.Tiny
 
         public ITrigger GetTriggerBy(string jobName)
         {
-            return _Triggers.FirstOrDefault(x => x.Key == jobName).Value;
+            ITrigger trigger;
+            _Triggers.TryGetValue(jobName, out trigger);
+            return trigger;
         }
 
         public bool TryAdd(ITrigger trigger)
         {
             return _Triggers.TryAdd(trigger.JobName, trigger);
         }
+
 
         public bool TryGetTriggersToBeFired(DateTime minNextFireTime, DateTime maxNextFireTime, out List<ITrigger> toBeFired)
         {
@@ -32,7 +35,7 @@ namespace EasyScheduler.Tiny
                 return false;
             }
             toBeFired =
-                _Triggers.Values.Where(x => x.GetNextFireTime(minNextFireTime) <= maxNextFireTime && x.ReadyToFire)
+                _Triggers.Values.Where(x => x.GetNextFireTime(minNextFireTime) <= maxNextFireTime && (x.CurrentFireTime==DateTime.MinValue || x.CurrentFireTime<minNextFireTime))
                     .ToList();
             if (toBeFired.Count == 0)
             {
@@ -46,7 +49,6 @@ namespace EasyScheduler.Tiny
 
         private void UpdateTrigger(ITrigger trigger, DateTime baseValue)
         {
-            trigger.ReadyToFire = false;
             //todo review may not need this CurrentFireTime
             trigger.CurrentFireTime = trigger.GetNextFireTime(baseValue);
         }

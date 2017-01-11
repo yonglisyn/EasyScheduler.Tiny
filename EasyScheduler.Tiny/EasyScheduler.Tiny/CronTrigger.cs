@@ -21,11 +21,9 @@ namespace EasyScheduler.Tiny
             JobName = jobName;
             _CronInstance = CrontabSchedule.Parse(cronExpression,CronStringFormat.WithSecondsAndYears);
             FirstFireTime = _CronInstance.GetNextOccurrence(DateTime.Now);
-            ReadyToFire = true;
         }
 
         public string JobName { get; private set; }
-        public bool ReadyToFire { get;  set; }
         public DateTime FirstFireTime { get; private set; }
         public DateTime? LastFireTime { get; private set; }
         public DateTime GetNextFireTime(DateTime baseValue)

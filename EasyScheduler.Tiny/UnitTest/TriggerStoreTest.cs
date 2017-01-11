@@ -40,7 +40,6 @@ namespace UnitTest
             Assert.AreEqual(true,actual);
             Assert.AreEqual(1,toBeFired.Count);
             var actualTrigger = target.GetTriggerBy(jobName1);
-            Assert.AreEqual(false, actualTrigger.ReadyToFire);
             Assert.AreEqual(nextFireTime, actualTrigger.CurrentFireTime);
         }
     }

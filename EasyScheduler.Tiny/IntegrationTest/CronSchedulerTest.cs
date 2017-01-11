@@ -48,6 +48,22 @@ namespace IntegrationTest
         }
 
         [Test]
+        public void Start_WillRunTheMainLoopOfExecutingOneJob_MoreThanTwice_BasedOnTrigger()
+        {
+            var jobNormalMoq = new Mock<IJob>();
+            jobNormalMoq.SetupGet(x => x.JobName).Returns("SimpleJob");
+            jobNormalMoq.Setup(x => x.ExcecuteAsync());
+            IJob jobNormal = jobNormalMoq.Object;
+            string cronExpression = "0/1 * * * * * *";
+            ITrigger tigger = new CronTrigger("SimpleJob", cronExpression);
+            var target = new CronScheduler(_SchedulerSetting, new TaskDeliveryManager(_TaskDeliveryManagerSetting, new JobNotificationCenter()));
+                target.Start();
+                target.Schedule(jobNormal, tigger);
+            Thread.Sleep(new TimeSpan(0,0,14));
+            jobNormalMoq.Verify(x => x.ExcecuteAsync(), Times.AtLeast(2));
+        }
+
+        [Test]
         public void Start_WillRunTheMainLoopOfExecuting2Jobs_BasedOnTriggers()
         {
             List<IJob> jobs = new List<IJob>();
@@ -117,7 +133,6 @@ namespace IntegrationTest
         }
 
         public string JobName { get { return _JobName; } }
-        public bool ReadyToFire { get; set; }
         public DateTime FirstFireTime { get; private set; }
         public DateTime? LastFireTime { get; private set; }
         public DateTime GetNextFireTime(DateTime baseValue)
