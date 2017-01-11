@@ -46,7 +46,6 @@ namespace EasyScheduler.Tiny
 
         private void UpdateTrigger(ITrigger trigger, DateTime baseValue)
         {
-            //Console.WriteLine("UpdateTrigger: " + trigger.GetNextFireTime(baseValue) + "base value" + baseValue);
             trigger.ReadyToFire = false;
             //todo review may not need this CurrentFireTime
             trigger.CurrentFireTime = trigger.GetNextFireTime(baseValue);

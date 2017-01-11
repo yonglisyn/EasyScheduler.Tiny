@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EasyScheduler.Tiny;
@@ -30,9 +32,8 @@ namespace IntegrationTest
         }
 
         [Test]
-        public void Start_WillRunTheMainLoopOfExecutingJobs_BasedOnTriggers()
+        public void Start_WillRunTheMainLoopOfExecutingOneJob_BasedOnTrigger()
         {
-            IJob job = new SimpleJob(typeof(SimpleJob).Name,"Trigger");
             var jobNormalMoq = new Mock<IJob>();
             jobNormalMoq.SetupGet(x => x.JobName).Returns("SimpleJob");
             jobNormalMoq.Setup(x => x.ExcecuteAsync());
@@ -44,6 +45,30 @@ namespace IntegrationTest
                 target.Schedule(jobNormal, tigger);
             Thread.Sleep(new TimeSpan(0,0,15));
             jobNormalMoq.Verify(x=>x.ExcecuteAsync(),Times.Exactly(1));
+        }
+
+        [Test]
+        public void Start_WillRunTheMainLoopOfExecuting2Jobs_BasedOnTriggers()
+        {
+            List<IJob> jobs = new List<IJob>();
+            List<ITrigger> triggers;
+            var jobMoq = new Mock<IJob>();
+            jobMoq.SetupGet(x => x.JobName).Returns("SimpleJob");
+            jobMoq.Setup(x => x.ExcecuteAsync());
+            jobs.Add(jobMoq.Object);
+            var jobMoq2 = new Mock<IJob>();
+            jobMoq2.SetupGet(x => x.JobName).Returns("SimpleJob2");
+            jobMoq2.Setup(x => x.ExcecuteAsync());
+            jobs.Add(jobMoq2.Object);
+            string cronExpression = "0/10 * * * * * *";
+            var triggerstmp = jobs.Select(x => new CronTrigger(x.JobName, cronExpression)).ToList();
+            triggers = new List<ITrigger>(triggerstmp);
+            var target = new CronScheduler(_SchedulerSetting, new TaskDeliveryManager(_TaskDeliveryManagerSetting, new JobNotificationCenter()));
+                target.Start();
+                jobs.ForEach(x=>target.Schedule(x,triggers.First(y=>y.JobName==x.JobName)));
+            Thread.Sleep(new TimeSpan(0,0,15));
+            jobMoq.Verify(x=>x.ExcecuteAsync(),Times.Exactly(1));
+            jobMoq2.Verify(x=>x.ExcecuteAsync(),Times.Exactly(1));
         }
 
         //[Test]
