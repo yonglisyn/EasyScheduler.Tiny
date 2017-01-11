@@ -29,7 +29,7 @@ namespace EasyScheduler.Tiny
                 if (!triggerStore.TryGetTriggersToBeFired(minNextFireTime, maxNextFireTime, out triggersToBeFired))
                 {
                     Thread.Sleep(new TimeSpan(0,0,10));
-                    minNextFireTime = minNextFireTime + new TimeSpan(0,0,10);
+                    minNextFireTime = minNextFireTime + _SchedulerSetting.RunnerCycleIncrement;
                     maxNextFireTime = minNextFireTime + _SchedulerSetting.FetchTriggersRange; 
                     continue;
                 }

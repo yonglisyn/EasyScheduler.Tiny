@@ -38,13 +38,13 @@ namespace IntegrationTest
             jobNormalMoq.SetupGet(x => x.JobName).Returns("SimpleJob");
             jobNormalMoq.Setup(x => x.ExcecuteAsync());
             IJob jobNormal = jobNormalMoq.Object;
-            string cronExpression = "0/10 * * * * * *";
+            string cronExpression = "0/1 * * * * * *";
             ITrigger tigger = new CronTrigger("SimpleJob", cronExpression);
             var target = new CronScheduler(_SchedulerSetting, new TaskDeliveryManager(_TaskDeliveryManagerSetting, new JobNotificationCenter()));
                 target.Start();
                 target.Schedule(jobNormal, tigger);
-            Thread.Sleep(new TimeSpan(0,0,15));
-            jobNormalMoq.Verify(x=>x.ExcecuteAsync(),Times.Exactly(1));
+            Thread.Sleep(new TimeSpan(0,0,12));
+            jobNormalMoq.Verify(x => x.ExcecuteAsync(), Times.AtLeastOnce);
         }
 
         [Test]
@@ -60,15 +60,15 @@ namespace IntegrationTest
             jobMoq2.SetupGet(x => x.JobName).Returns("SimpleJob2");
             jobMoq2.Setup(x => x.ExcecuteAsync());
             jobs.Add(jobMoq2.Object);
-            string cronExpression = "0/3 * * * * * *";
+            string cronExpression = "0/1 * * * * * *";
             var triggerstmp = jobs.Select(x => new CronTrigger(x.JobName, cronExpression)).ToList();
             triggers = new List<ITrigger>(triggerstmp);
             var target = new CronScheduler(_SchedulerSetting, new TaskDeliveryManager(_TaskDeliveryManagerSetting, new JobNotificationCenter()));
                 target.Start();
                 jobs.ForEach(x=>target.Schedule(x,triggers.First(y=>y.JobName==x.JobName)));
-            Thread.Sleep(new TimeSpan(0,0,5));
-            jobMoq.Verify(x=>x.ExcecuteAsync(),Times.Exactly(1));
-            jobMoq2.Verify(x=>x.ExcecuteAsync(),Times.Exactly(1));
+            Thread.Sleep(new TimeSpan(0,0,12));
+            jobMoq.Verify(x => x.ExcecuteAsync(), Times.AtLeastOnce);
+            jobMoq2.Verify(x => x.ExcecuteAsync(), Times.AtLeastOnce);
         }
 
         [Test]
@@ -78,14 +78,14 @@ namespace IntegrationTest
             jobMoq.SetupGet(x => x.JobName).Returns("SimpleJob");
             jobMoq.Setup(x => x.ExcecuteAsync());
             var simpleJobThrowException = new SimpleJobThrowException("SimpleJobThrowException");
-            string cronExpression = "0/10 * * * * * *";
-            string cronExpression2 = "0/5 * * * * * *";
+            string cronExpression = "0/2 * * * * * *";
+            string cronExpression2 = "0/1 * * * * * *";
             var target = new CronScheduler(_SchedulerSetting, new TaskDeliveryManager(_TaskDeliveryManagerSetting, new JobNotificationCenter()));
             target.Start();
             target.Schedule(simpleJobThrowException, new CronTrigger("SimpleJobThrowException",cronExpression2));
             target.Schedule(jobMoq.Object, new CronTrigger("SimpleJob", cronExpression));
-            Thread.Sleep(new TimeSpan(0, 0, 15));
-            jobMoq.Verify(x => x.ExcecuteAsync(), Times.Exactly(1));
+            Thread.Sleep(new TimeSpan(0, 0, 13));
+            jobMoq.Verify(x => x.ExcecuteAsync(), Times.AtLeastOnce);
         }
 
     }

@@ -98,25 +98,6 @@ namespace EasyScheduler.Tiny
         }
     }
 
-    public class SchedulerSetting
-    {
-        private readonly TimeSpan _FetchTriggersRange;
-        private readonly TimeSpan _SchedulerIdleTime;
-
-        public TimeSpan FetchTriggersRange { get { return _FetchTriggersRange; } }
-        public TimeSpan SchedulerIdleTime { get { return _SchedulerIdleTime; } }
-        public SchedulerSetting(TimeSpan fetchTriggersRange, TimeSpan schedulerIdleTime)
-        {
-            _FetchTriggersRange = fetchTriggersRange;
-            _SchedulerIdleTime = schedulerIdleTime;
-        }
-
-        public static SchedulerSetting Default()
-        {
-            return new SchedulerSetting(new TimeSpan(0,5,0),new TimeSpan(0,0,10));
-        }
-    }
-
     internal enum SchedulerStatus
     {
         Started = 1,
