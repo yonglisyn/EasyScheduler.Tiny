@@ -13,8 +13,8 @@ namespace UnitTest
         {
             var target= new TriggerStore();
             List<ITrigger> toBeFired;
-            var actual = target.TryGetTriggersToBeFired(new DateTime(2016, 1, 1), new DateTime(2016, 2, 1),
-                out toBeFired);
+            FetchCycle fetchCycle = new FetchCycle(new DateTime(2016, 1, 1), new TimeSpan(30,0,0,0));
+            var actual = target.TryGetTriggersToBeFired(out toBeFired, fetchCycle);
 
             Assert.AreEqual(false,actual);
             Assert.AreEqual(0,toBeFired.Count);
@@ -34,8 +34,8 @@ namespace UnitTest
             target.TryAdd(triggerInRangeMoq);
 
             List<ITrigger> toBeFired;
-            var actual = target.TryGetTriggersToBeFired(new DateTime(2016, 1, 1,0,0,0), new DateTime(2016, 2, 1),
-                out toBeFired);
+            FetchCycle fetchCycle = new FetchCycle(new DateTime(2016, 1, 1,0,0,0), new TimeSpan(30, 0, 0, 0));
+            var actual = target.TryGetTriggersToBeFired(out toBeFired, fetchCycle);
 
             Assert.AreEqual(true,actual);
             Assert.AreEqual(1,toBeFired.Count);

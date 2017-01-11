@@ -9,7 +9,8 @@ namespace EasyScheduler.Tiny
     public class SchedulerRunner
     {
         private readonly TaskDeliveryManager _TaskDeliveryManager;
-        private SchedulerSetting _SchedulerSetting;
+        private readonly SchedulerSetting _SchedulerSetting;
+        private FetchCycle _FetchCycle;
 
         public SchedulerRunner(SchedulerSetting schedulerSetting, TaskDeliveryManager taskDeliveryManager)
         {
@@ -18,37 +19,62 @@ namespace EasyScheduler.Tiny
         }
         public void Run(JobStore jobStore, TriggerStore triggerStore)
         {
-            var minNextFireTime = DateTime.Now;
-            var maxNextFireTime = minNextFireTime + _SchedulerSetting.FetchTriggersRange;
+            _FetchCycle = new FetchCycle(DateTime.Now,_SchedulerSetting.FetchTriggersRange);
             while (true)
             {
                 Console.WriteLine("Main loop Run start at: " + DateTime.Now);
-                Console.WriteLine("Main loop Run init with min: " + minNextFireTime);
-                Console.WriteLine("Main loop Run init with max: " + maxNextFireTime);
+                Console.WriteLine("Main loop Run init with min: " + _FetchCycle.MinNextFireTime);
+                Console.WriteLine("Main loop Run init with max: " + _FetchCycle.MaxNextFireTime);
                 List<ITrigger> triggersToBeFired;
-                if (!triggerStore.TryGetTriggersToBeFired(minNextFireTime, maxNextFireTime, out triggersToBeFired))
+                if (!triggerStore.TryGetTriggersToBeFired(out triggersToBeFired, _FetchCycle))
                 {
                     Thread.Sleep(new TimeSpan(0,0,10));
-                    minNextFireTime = minNextFireTime + _SchedulerSetting.RunnerCycleIncrement;
-                    maxNextFireTime = minNextFireTime + _SchedulerSetting.FetchTriggersRange; 
+                    _FetchCycle.PushForward(_SchedulerSetting.RunnerCycleIncrement);
                     continue;
                 }
-                minNextFireTime = minNextFireTime + new TimeSpan(0, 0, 10);
-                if (minNextFireTime > triggersToBeFired.Min(x => x.CurrentFireTime))
-                {
-                    minNextFireTime = triggersToBeFired.Min(x => x.CurrentFireTime);
-                }
-                maxNextFireTime = minNextFireTime + _SchedulerSetting.FetchTriggersRange;
+
+                var minCurrentFireTime = triggersToBeFired.Min(x => x.CurrentFireTime);
+                var timeSpan = _FetchCycle.GetMinTimeSpanToBePushForward(_SchedulerSetting.RunnerCycleIncrement, minCurrentFireTime);
+                _FetchCycle.PushForward(timeSpan);
                 Console.WriteLine("Main loop deliver at: " + DateTime.Now);
                 var jobExecutionList = jobStore.GetJobsToBeExcuted(triggersToBeFired);
                 Task.Factory.StartNew(() => _TaskDeliveryManager.Deliver(jobExecutionList, triggersToBeFired),
                     TaskCreationOptions.LongRunning);
                 //todo set trigger ready again
-                if (minNextFireTime - DateTime.Now > new TimeSpan(0, 0, 1))
+                if (_FetchCycle.MinNextFireTime - DateTime.Now > new TimeSpan(0, 0, 1))
                 {
-                    Thread.Sleep(minNextFireTime - DateTime.Now);
+                    Thread.Sleep(_FetchCycle.MinNextFireTime - DateTime.Now);
                 }
             }
+        }
+    }
+
+    public class FetchCycle
+    {
+        private readonly TimeSpan _Range;
+
+        public FetchCycle(DateTime minNextFireTime, TimeSpan range)
+        {
+            MinNextFireTime = minNextFireTime;
+            _Range = range;
+        }
+
+        public DateTime MinNextFireTime { get; private set; }
+        public DateTime MaxNextFireTime { get { return MinNextFireTime + _Range; } }
+
+        public void PushForward(TimeSpan runnerCycleIncrement)
+        {
+            MinNextFireTime = MinNextFireTime + runnerCycleIncrement;
+
+        }
+
+        public TimeSpan GetMinTimeSpanToBePushForward(TimeSpan runnerCycleIncrement, DateTime minCurrentFireTime)
+        {
+            if (minCurrentFireTime < MinNextFireTime + runnerCycleIncrement)
+            {
+                return minCurrentFireTime - MinNextFireTime;
+            }
+            return runnerCycleIncrement;
         }
     }
 }

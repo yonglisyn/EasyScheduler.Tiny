@@ -27,7 +27,7 @@ namespace EasyScheduler.Tiny
         }
 
 
-        public bool TryGetTriggersToBeFired(DateTime minNextFireTime, DateTime maxNextFireTime, out List<ITrigger> toBeFired)
+        public bool TryGetTriggersToBeFired(out List<ITrigger> toBeFired, FetchCycle fetchCycle)
         {
             if (_Triggers.Count == 0)
             {
@@ -35,15 +35,17 @@ namespace EasyScheduler.Tiny
                 return false;
             }
             toBeFired =
-                _Triggers.Values.Where(x => x.GetNextFireTime(minNextFireTime) <= maxNextFireTime && (x.CurrentFireTime==DateTime.MinValue || x.CurrentFireTime<minNextFireTime))
+                _Triggers.Values.Where(x => 
+                    x.GetNextFireTime(fetchCycle.MinNextFireTime) <= fetchCycle.MaxNextFireTime 
+                    && (x.CurrentFireTime == DateTime.MinValue || x.CurrentFireTime < fetchCycle.MinNextFireTime))
                     .ToList();
             if (toBeFired.Count == 0)
             {
-                var tmp = _Triggers.Values.First().GetNextFireTime(minNextFireTime);
+                var tmp = _Triggers.Values.First().GetNextFireTime(fetchCycle.MinNextFireTime);
                 Console.WriteLine("TryGetTriggersToBeFired failed for min: " + tmp);
                 return false;
             }
-            toBeFired.ForEach(x => UpdateTrigger(x, minNextFireTime));
+            toBeFired.ForEach(x => UpdateTrigger(x, fetchCycle.MinNextFireTime));
             return true;   
         }
 
