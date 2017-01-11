@@ -72,7 +72,7 @@ namespace IntegrationTest
         }
 
         [Test]
-        public void OneJobThrowException_Run_ShouldContinue()
+        public void OneJobThrowException_ShouldNotAffectOtherJobs()
         {
             var jobMoq = new Mock<IJob>();
             jobMoq.SetupGet(x => x.JobName).Returns("SimpleJob");

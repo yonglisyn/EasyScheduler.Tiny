@@ -74,7 +74,16 @@ namespace EasyScheduler.Tiny
             //TODO NotifySchedulerListeners 
             _Thread = new Thread(()=>_SchedulerRunner.Run(_JobStore,_TriggerStore));
             _SchedulerStatus = SchedulerStatus.Running;
-            _Thread.Start();
+            try
+            {
+                _Thread.Start();
+            }
+            catch (Exception ex)
+            {
+                Stop();
+                //todo logprovider
+                Console.WriteLine(ex.Message + "\n"+ex.StackTrace);
+            }
         }
 
         public void Stop()
