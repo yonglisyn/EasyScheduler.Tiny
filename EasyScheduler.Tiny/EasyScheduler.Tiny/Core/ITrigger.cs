@@ -1,6 +1,6 @@
 using System;
 
-namespace EasyScheduler.Tiny
+namespace EasyScheduler.Tiny.Core
 {
     public interface ITrigger
     {

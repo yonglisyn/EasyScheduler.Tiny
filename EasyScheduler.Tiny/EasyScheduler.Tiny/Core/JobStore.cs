@@ -1,10 +1,10 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace EasyScheduler.Tiny
+namespace EasyScheduler.Tiny.Core
 {
-    public class JobStore
+    internal class JobStore
     {
         private ConcurrentBag<IJob> _Jobs;
 

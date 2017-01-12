@@ -1,4 +1,4 @@
-﻿namespace EasyScheduler.Tiny
+﻿namespace EasyScheduler.Tiny.Core.EnumsConstants
 {
     public enum TriggerStatus
     {

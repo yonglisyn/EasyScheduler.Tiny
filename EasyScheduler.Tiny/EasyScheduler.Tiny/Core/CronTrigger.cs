@@ -2,7 +2,7 @@
 using NCrontab.Advanced;
 using NCrontab.Advanced.Enumerations;
 
-namespace EasyScheduler.Tiny
+namespace EasyScheduler.Tiny.Core
 {
 //    Field name   | Allowed values  | Allowed special characters
 //------------------------------------------------------------

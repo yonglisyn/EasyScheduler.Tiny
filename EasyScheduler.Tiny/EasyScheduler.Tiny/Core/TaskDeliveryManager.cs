@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EasyScheduler.Tiny.Core.EnumsConstants;
+using EasyScheduler.Tiny.Core.Settings;
 
-namespace EasyScheduler.Tiny
+namespace EasyScheduler.Tiny.Core
 {
     public class TaskDeliveryManager
     {
@@ -36,11 +38,11 @@ namespace EasyScheduler.Tiny
                     var task = await Task.WhenAny(_Tasks);
                     _Tasks.Remove(task);
                     var result = await task;
-                    NotifyJobListeners(result);
+                    _JobNotificationCenter.NotifyResult(result);
                 }
                 catch (Exception)
                 {
-                   //job exception
+                    //job exception
                     //todo handle
                 }
             }
@@ -59,7 +61,7 @@ namespace EasyScheduler.Tiny
                 {
                     //Todo check what happens if not async await
                     _Tasks.Add(Task.Run(async () => await job.ExcecuteAsync()));
-                    _JobNotificationCenter.BroadCast(JobExcecutionStatus.Running, trigger.CurrentFireTime);
+                    _JobNotificationCenter.NotifyJobSwitchStatus(JobExcecutionStatus.Running, trigger.CurrentFireTime);
                     break;
                 }
                 if (triggerTime < now)
@@ -75,39 +77,6 @@ namespace EasyScheduler.Tiny
         private void NotifyJobListeners(JobExcecutionResult result)
         {
             
-        }
-    }
-
-    public enum JobExcecutionStatus
-    {
-        Idle = 1,
-        Running = 2,
-        FinishedSuccessful = 3,
-        Failed = 4
-    }
-
-    public class JobNotificationCenter
-    {
-        public void BroadCast(JobExcecutionStatus started, DateTime currentFireTime)
-        {
-            //todo need to be fire and forget to do not take up time to continue next loop
-        }
-    }
-
-    public class TaskDeliveryManagerSetting
-    {
-        private readonly TimeSpan _TaskDeliveryIdleCycle;
-
-        private TaskDeliveryManagerSetting(TimeSpan taskDeliveryIdleCycle)
-        {
-            _TaskDeliveryIdleCycle = taskDeliveryIdleCycle;
-        }
-
-        public TimeSpan TaskDeliveryIdleCycle { get { return _TaskDeliveryIdleCycle; } }
-
-        public static TaskDeliveryManagerSetting Default()
-        {
-            return new TaskDeliveryManagerSetting(new TimeSpan(0,0,0,0,10));
         }
     }
 }

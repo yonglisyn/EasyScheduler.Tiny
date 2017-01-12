@@ -1,7 +1,10 @@
-﻿using System;
+using System;
 using System.Threading;
+using EasyScheduler.Tiny.Core.Enums;
+using EasyScheduler.Tiny.Core.Exceptions;
+using EasyScheduler.Tiny.Core.Settings;
 
-namespace EasyScheduler.Tiny
+namespace EasyScheduler.Tiny.Core
 {
     public class CronScheduler: IScheduler
     {
@@ -96,13 +99,5 @@ namespace EasyScheduler.Tiny
         {
             throw new System.NotImplementedException();
         }
-    }
-
-    internal enum SchedulerStatus
-    {
-        Started = 1,
-        Running = 2,
-        Stopped = 3,
-        Paused = 4
     }
 }

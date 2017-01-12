@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using EasyScheduler.Tiny;
+using EasyScheduler.Tiny.Core;
 using NUnit.Framework;
 
 namespace UnitTest

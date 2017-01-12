@@ -1,4 +1,4 @@
-﻿namespace EasyScheduler.Tiny
+﻿namespace EasyScheduler.Tiny.Core
 {
     public interface IScheduler
     {

@@ -2,6 +2,8 @@
 
 namespace EasyScheduler.Tiny
 {
+    //todo
+    [Obsolete("No place yet, can try delete at the end")]
     public class DateTimeRange
     {
         private readonly DateTime _From;

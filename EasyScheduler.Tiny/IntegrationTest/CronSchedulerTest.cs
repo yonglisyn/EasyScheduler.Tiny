@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EasyScheduler.Tiny;
+using EasyScheduler.Tiny.Core;
+using EasyScheduler.Tiny.Core.Settings;
 using Moq;
 using NUnit.Framework;
 
@@ -32,7 +34,7 @@ namespace IntegrationTest
         }
 
         [Test]
-        public void Start_WillRunTheMainLoopOfExecutingOneJob_BasedOnTrigger()
+        public void Start_WillRunTheMainLoop_AndExecuteOneJob_BasedOnTrigger()
         {
             var jobNormalMoq = new Mock<IJob>();
             jobNormalMoq.SetupGet(x => x.JobName).Returns("SimpleJob");
@@ -48,7 +50,7 @@ namespace IntegrationTest
         }
 
         [Test]
-        public void Start_WillRunTheMainLoopOfExecutingOneJob_MoreThanTwice_BasedOnTrigger()
+        public void Start_WillRunTheMainLoop_AndExecuteOneJob_MoreThanTwice_BasedOnTrigger()
         {
             var jobNormalMoq = new Mock<IJob>();
             jobNormalMoq.SetupGet(x => x.JobName).Returns("SimpleJob");
@@ -64,7 +66,7 @@ namespace IntegrationTest
         }
 
         [Test]
-        public void Start_WillRunTheMainLoopOfExecuting2Jobs_BasedOnTriggers()
+        public void Start_WillRunTheMainLoop_AndExecuting2Jobs_BasedOnTriggers()
         {
             List<IJob> jobs = new List<IJob>();
             List<ITrigger> triggers;

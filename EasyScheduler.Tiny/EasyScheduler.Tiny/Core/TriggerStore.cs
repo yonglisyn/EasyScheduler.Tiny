@@ -3,9 +3,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace EasyScheduler.Tiny
+namespace EasyScheduler.Tiny.Core
 {
-    public class TriggerStore
+    internal class TriggerStore
     {
         private ConcurrentDictionary<string,ITrigger> _Triggers;
 

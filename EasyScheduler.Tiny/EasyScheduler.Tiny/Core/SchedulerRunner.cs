@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EasyScheduler.Tiny.Core.Settings;
 
-namespace EasyScheduler.Tiny
+namespace EasyScheduler.Tiny.Core
 {
-    public class SchedulerRunner
+    internal class SchedulerRunner
     {
         private readonly TaskDeliveryManager _TaskDeliveryManager;
         private readonly SchedulerSetting _SchedulerSetting;
@@ -17,6 +18,7 @@ namespace EasyScheduler.Tiny
             _SchedulerSetting = schedulerSetting;
             _TaskDeliveryManager = taskDeliveryManager;
         }
+
         public void Run(JobStore jobStore, TriggerStore triggerStore)
         {
             _FetchCycle = new FetchCycle(DateTime.Now,_SchedulerSetting.FetchRange);
@@ -46,35 +48,6 @@ namespace EasyScheduler.Tiny
                     Thread.Sleep(_FetchCycle.MinNextFireTime - DateTime.Now);
                 }
             }
-        }
-    }
-
-    public class FetchCycle
-    {
-        private readonly TimeSpan _Range;
-
-        public FetchCycle(DateTime minNextFireTime, TimeSpan range)
-        {
-            MinNextFireTime = minNextFireTime;
-            _Range = range;
-        }
-
-        public DateTime MinNextFireTime { get; private set; }
-        public DateTime MaxNextFireTime { get { return MinNextFireTime + _Range; } }
-
-        public void PushForward(TimeSpan runnerCycleIncrement)
-        {
-            MinNextFireTime = MinNextFireTime + runnerCycleIncrement;
-
-        }
-
-        public TimeSpan GetMinTimeSpanToBePushForward(TimeSpan runnerCycleIncrement, DateTime minCurrentFireTime)
-        {
-            if (minCurrentFireTime < MinNextFireTime + runnerCycleIncrement)
-            {
-                return minCurrentFireTime - MinNextFireTime;
-            }
-            return runnerCycleIncrement;
         }
     }
 }

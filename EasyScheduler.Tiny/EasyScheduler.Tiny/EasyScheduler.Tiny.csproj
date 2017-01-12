@@ -47,27 +47,33 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
-    <Compile Include="CronScheduler.cs" />
-    <Compile Include="CronTrigger.cs" />
+    <Compile Include="Core\CronScheduler.cs" />
+    <Compile Include="Core\CronTrigger.cs" />
+    <Compile Include="Core\EnumsConstants\JobExcecutionStatus.cs" />
+    <Compile Include="Core\EnumsConstants\SchedulerStatus.cs" />
+    <Compile Include="Core\EnumsConstants\TriggerStatus.cs" />
+    <Compile Include="Core\Exceptions\EasySchedulerException.cs" />
+    <Compile Include="Core\FetchCycle.cs" />
+    <Compile Include="Core\IJob.cs" />
+    <Compile Include="Core\IScheduler.cs" />
+    <Compile Include="Core\ITrigger.cs" />
+    <Compile Include="Core\JobExcecutionResult.cs" />
+    <Compile Include="Core\JobFireHistory.cs" />
+    <Compile Include="Core\JobNotificationCenter.cs" />
+    <Compile Include="Core\JobStore.cs" />
+    <Compile Include="Core\SchedulerRunner.cs" />
+    <Compile Include="Core\Settings\SchedulerSetting.cs" />
+    <Compile Include="Core\Settings\TaskDeliveryManagerSetting.cs" />
+    <Compile Include="Core\TaskDeliveryManager.cs" />
+    <Compile Include="Core\TriggerStore.cs" />
     <Compile Include="DateTimeRange.cs" />
-    <Compile Include="EasySchedulerException.cs" />
-    <Compile Include="IJob.cs" />
-    <Compile Include="IScheduler.cs" />
-    <Compile Include="ITrigger.cs" />
-    <Compile Include="JobFireHistory.cs" />
-    <Compile Include="JobStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SchedulerRunner.cs" />
-    <Compile Include="SchedulerSetting.cs" />
-    <Compile Include="TaskDeliveryManager.cs" />
-    <Compile Include="TriggerStore.cs" />
-    <Compile Include="TriggerStatus.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using EasyScheduler.Tiny.Core.EnumsConstants;
 
-namespace EasyScheduler.Tiny
+namespace EasyScheduler.Tiny.Core
 {
     public class JobFireHistory
     {

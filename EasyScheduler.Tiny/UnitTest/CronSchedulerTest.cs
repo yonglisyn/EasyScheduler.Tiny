@@ -2,6 +2,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using EasyScheduler.Tiny;
+using EasyScheduler.Tiny.Core;
+using EasyScheduler.Tiny.Core.Exceptions;
 using Moq;
 using NUnit.Framework;
 
