@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using EasyScheduler.Tiny.Core.Enums;
 using EasyScheduler.Tiny.Core.Exceptions;
 using EasyScheduler.Tiny.Core.Settings;
@@ -41,12 +42,13 @@ namespace EasyScheduler.Tiny.Core
 
         public void Schedule(IJob job, ITrigger trigger)
         {
-            if (!string.Equals(job.JobName,trigger.JobName,StringComparison.InvariantCultureIgnoreCase))
+            if (!string.Equals(job.JobName, trigger.JobName, StringComparison.InvariantCultureIgnoreCase))
             {
-                throw new EasySchedulerException(string.Format("IJob {0} and ITrigger {1} must have same JobName!", job.JobName, trigger.JobName));
+                throw new EasySchedulerException(string.Format("IJob {0} and ITrigger {1} must have same JobName!",
+                    job.JobName, trigger.JobName));
             }
-                _JobStore.Add(job);
-                _TriggerStore.TryAdd(trigger);
+            _JobStore.Add(job);
+            _TriggerStore.TryAdd(trigger);
             Console.WriteLine("Scheduled on " + DateTime.Now);
         }
 
@@ -69,7 +71,9 @@ namespace EasyScheduler.Tiny.Core
         {
             _SchedulerStatus = SchedulerStatus.Started;
             //TODO NotifySchedulerListeners 
-            _Thread = new Thread(()=>_SchedulerRunner.Run(_JobStore,_TriggerStore));
+            var cancleTokenSource = new CancellationTokenSource();
+            var task = Task.Factory.StartNew(() => _SchedulerRunner.Run(_JobStore, _TriggerStore), cancleTokenSource.Token,
+                TaskCreationOptions.LongRunning, TaskScheduler.Default);
             _SchedulerStatus = SchedulerStatus.Running;
             try
             {
