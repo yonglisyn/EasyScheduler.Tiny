@@ -12,22 +12,19 @@ namespace EasyScheduler.Tiny.Core
         private JobStore _JobStore;
         private TriggerStore _TriggerStore;
         private SchedulerStatus _SchedulerStatus;
-        private readonly SchedulerSetting _SchedulerSetting;
-        private object _StoreLock = new object();
         private readonly SchedulerRunner _SchedulerRunner;
 
         public CronScheduler(SchedulerSetting schedulerSetting, TaskDeliveryManager taskDeliveryManager)
         {
-            _SchedulerSetting = schedulerSetting;
-            _SchedulerRunner = new SchedulerRunner(_SchedulerSetting,taskDeliveryManager);
+            _SchedulerRunner = new SchedulerRunner(schedulerSetting,taskDeliveryManager);
             _JobStore = new JobStore();
             _TriggerStore = new TriggerStore();
         }
 
         public CronScheduler()
         {
-            _SchedulerSetting = SchedulerSetting.Default();
-            _SchedulerRunner = new SchedulerRunner(_SchedulerSetting, new TaskDeliveryManager(TaskDeliveryManagerSetting.Default(), new JobNotificationCenter()));
+            var schedulerSetting = SchedulerSetting.Default();
+            _SchedulerRunner = new SchedulerRunner(schedulerSetting, new TaskDeliveryManager(TaskDeliveryManagerSetting.Default(), new JobNotificationCenter()));
             _JobStore = new JobStore();
             _TriggerStore = new TriggerStore();
         }
@@ -48,12 +45,9 @@ namespace EasyScheduler.Tiny.Core
             {
                 throw new EasySchedulerException(string.Format("IJob {0} and ITrigger {1} must have same JobName!", job.JobName, trigger.JobName));
             }
-            lock (_StoreLock)
-            {
                 _JobStore.Add(job);
                 _TriggerStore.TryAdd(trigger);
-            }
-            Console.WriteLine("Scheduled on "+DateTime.Now);
+            Console.WriteLine("Scheduled on " + DateTime.Now);
         }
 
         public void Disable(string jobName)

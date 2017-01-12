@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using EasyScheduler.Tiny;
 using EasyScheduler.Tiny.Core;
 using EasyScheduler.Tiny.Core.Settings;
 using Moq;
