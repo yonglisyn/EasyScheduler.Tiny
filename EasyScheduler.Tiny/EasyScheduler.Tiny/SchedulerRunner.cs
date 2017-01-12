@@ -19,7 +19,7 @@ namespace EasyScheduler.Tiny
         }
         public void Run(JobStore jobStore, TriggerStore triggerStore)
         {
-            _FetchCycle = new FetchCycle(DateTime.Now,_SchedulerSetting.FetchTriggersRange);
+            _FetchCycle = new FetchCycle(DateTime.Now,_SchedulerSetting.FetchRange);
             while (true)
             {
                 Console.WriteLine("Main loop Run start at: " + DateTime.Now);

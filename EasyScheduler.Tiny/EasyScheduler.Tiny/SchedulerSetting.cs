@@ -4,17 +4,17 @@ namespace EasyScheduler.Tiny
 {
     public class SchedulerSetting
     {
-        private readonly TimeSpan _FetchTriggersRange;
+        private readonly TimeSpan _FetchRange;
         private readonly TimeSpan _SchedulerIdleTime;
         private readonly TimeSpan _RunnerCycleIncrement;
 
-        public TimeSpan FetchTriggersRange { get { return _FetchTriggersRange; } }
+        public TimeSpan FetchRange { get { return _FetchRange; } }
         public TimeSpan SchedulerIdleTime { get { return _SchedulerIdleTime; } }
         public TimeSpan RunnerCycleIncrement { get { return _RunnerCycleIncrement; }}
 
-        public SchedulerSetting(TimeSpan fetchTriggersRange, TimeSpan schedulerIdleTime, TimeSpan runnerCycleIncrement)
+        public SchedulerSetting(TimeSpan fetchRange, TimeSpan schedulerIdleTime, TimeSpan runnerCycleIncrement)
         {
-            _FetchTriggersRange = fetchTriggersRange;
+            _FetchRange = fetchRange;
             _SchedulerIdleTime = schedulerIdleTime;
             _RunnerCycleIncrement = runnerCycleIncrement;
         }
