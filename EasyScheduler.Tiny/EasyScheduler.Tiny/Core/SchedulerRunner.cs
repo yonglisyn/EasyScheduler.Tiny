@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,6 +27,7 @@ namespace EasyScheduler.Tiny.Core
                 token.ThrowIfCancellationRequested();
                 if (token.IsCancellationRequested)
                 {
+                    //todo replace with logprovider to log where
                     Console.WriteLine("cancel requested");
                     throw new OperationCanceledException();
                 }

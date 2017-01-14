@@ -64,7 +64,7 @@ namespace EasyScheduler.Tiny.Core
                 {
                     //Todo check what happens if not async await
                     _Tasks.Add(Task.Run(async () => await job.ExcecuteAsync()));
-                    _JobNotificationCenter.NotifyJobSwitchStatus(JobExcecutionStatus.Running, trigger.CurrentFireTime);
+                    _JobNotificationCenter.NotifyJobSwitchStatus(JobStatus.Running, trigger.CurrentFireTime);
                     break;
                 }
                 if (triggerTime < now)

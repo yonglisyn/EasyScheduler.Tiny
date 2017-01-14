@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EasyScheduler.Tiny.Core;
 using EasyScheduler.Tiny.Core.Enums;
+using EasyScheduler.Tiny.Core.EnumsConstants;
 using EasyScheduler.Tiny.Core.Settings;
 using Moq;
 using NUnit.Framework;
@@ -57,10 +58,10 @@ namespace IntegrationTest
             jobNormalMoq.Setup(x => x.ExcecuteAsync()).Returns(() => Task<JobExcecutionResult>.Factory.StartNew(() => JobExcecutionResult.Success));
             IJob jobNormal = jobNormalMoq.Object;
             string cronExpression = "0/1 * * * * * *";
-            ITrigger tigger = new CronTrigger("SimpleJob", cronExpression);
+            ITrigger trigger = new CronTrigger("SimpleJob", cronExpression);
             var target = new CronScheduler(_SchedulerSetting, new TaskDeliveryManager(_TaskDeliveryManagerSetting, new JobNotificationCenter()));
                 target.Start();
-                target.Schedule(jobNormal, tigger);
+                target.Schedule(jobNormal, trigger);
             Thread.Sleep(new TimeSpan(0,0,14));
             jobNormalMoq.Verify(x => x.ExcecuteAsync(), Times.AtLeast(2));
         }
@@ -108,17 +109,28 @@ namespace IntegrationTest
 
 
         [Test]
-        public void Scheduler_ShouldStop_IfCancellationRequested()
+        public void SchedulerShouldStop_IfSchedulerStoped()
         {
-            //var jobNormalMoq = new Mock<IJob>();
-            //jobNormalMoq.SetupGet(x => x.JobName).Returns("SimpleJob");
-            //jobNormalMoq.Setup(x => x.ExcecuteAsync()).Returns(() => Task<JobExcecutionResult>.Factory.StartNew(() => JobExcecutionResult.Success));
-            //IJob jobNormal = jobNormalMoq.Object;
-            //string cronExpression = "0/1 * * * * * *";
-            //ITrigger tigger = new CronTrigger("SimpleJob", cronExpression);
             var target = new CronScheduler(_SchedulerSetting, new TaskDeliveryManager(_TaskDeliveryManagerSetting, new JobNotificationCenter()));
             target.Start();
-            //target.Schedule(jobNormal, tigger);
+            Thread.Sleep(new TimeSpan(0, 0, 2));
+            target.Stop();
+            Assert.AreEqual(SchedulerStatus.Stopped,target.SchedulerStatus);
+
+        }
+
+        [Test]
+        public void RunningJobs_ShouldContinueCurrentFireRound_IfSchedulerStoped()
+        {
+            var jobNormalMoq = new Mock<IJob>();
+            jobNormalMoq.SetupGet(x => x.JobName).Returns("SimpleJob");
+            jobNormalMoq.Setup(x => x.ExcecuteAsync()).Returns(() => Task<JobExcecutionResult>.Factory.StartNew(() => JobExcecutionResult.Success));
+            IJob jobNormal = jobNormalMoq.Object;
+            string cronExpression = "0/1 * * * * * *";
+            ITrigger trigger = new CronTrigger("SimpleJob", cronExpression);
+            var target = new CronScheduler(_SchedulerSetting, new TaskDeliveryManager(_TaskDeliveryManagerSetting, new JobNotificationCenter()));
+            target.Start();
+            target.Schedule(jobNormal, trigger);
             Thread.Sleep(new TimeSpan(0, 0, 2));
             target.Stop();
             Assert.AreEqual(SchedulerStatus.Stopped,target.SchedulerStatus);
@@ -134,6 +146,7 @@ namespace IntegrationTest
         }
 
         public string JobName { get; private set; }
+        public JobStatus JobStatus { get; private set; }
 
         public async Task<JobExcecutionResult> ExcecuteAsync()
         {
@@ -167,13 +180,15 @@ namespace IntegrationTest
     {
         private string _TiggerName;
 
-        public SimpleJob(string jobName, string tiggerName)
+        public SimpleJob(string jobName, string tiggerName, JobStatus status = JobStatus.Idle)
         {
             JobName = jobName;
             _TiggerName = tiggerName;
+            JobStatus = status;
         }
 
         public string JobName { get; private set; }
+        public JobStatus JobStatus { get; private set; }
 
         public async Task<JobExcecutionResult> ExcecuteAsync()
         {

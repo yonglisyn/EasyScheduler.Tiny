@@ -5,7 +5,7 @@ namespace EasyScheduler.Tiny.Core
 {
     public class JobNotificationCenter
     {
-        public void NotifyJobSwitchStatus(JobExcecutionStatus started, DateTime currentFireTime)
+        public void NotifyJobSwitchStatus(JobStatus started, DateTime currentFireTime)
         {
             //todo need to be fire and forget to do not take up time to continue next loop
         }

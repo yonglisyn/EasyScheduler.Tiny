@@ -49,7 +49,7 @@
   <ItemGroup>
     <Compile Include="Core\CronScheduler.cs" />
     <Compile Include="Core\CronTrigger.cs" />
-    <Compile Include="Core\EnumsConstants\JobExcecutionStatus.cs" />
+    <Compile Include="Core\EnumsConstants\JobStatus.cs" />
     <Compile Include="Core\EnumsConstants\SchedulerStatus.cs" />
     <Compile Include="Core\EnumsConstants\TriggerStatus.cs" />
     <Compile Include="Core\Exceptions\EasySchedulerException.cs" />
