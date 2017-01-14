@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EasyScheduler.Tiny.Core;
+using EasyScheduler.Tiny.Core.Enums;
 using EasyScheduler.Tiny.Core.Settings;
 using Moq;
 using NUnit.Framework;
@@ -33,11 +34,11 @@ namespace IntegrationTest
         }
 
         [Test]
-        public void Start_WillRunTheMainLoop_AndExecuteOneJob_BasedOnTrigger()
+        public void ExecuteOneJob_BasedOnTrigger()
         {
             var jobNormalMoq = new Mock<IJob>();
             jobNormalMoq.SetupGet(x => x.JobName).Returns("SimpleJob");
-            jobNormalMoq.Setup(x => x.ExcecuteAsync());
+            jobNormalMoq.Setup(x => x.ExcecuteAsync()).Returns(() => Task<JobExcecutionResult>.Factory.StartNew(() => JobExcecutionResult.Success));
             IJob jobNormal = jobNormalMoq.Object;
             string cronExpression = "0/1 * * * * * *";
             ITrigger tigger = new CronTrigger("SimpleJob", cronExpression);
@@ -49,11 +50,11 @@ namespace IntegrationTest
         }
 
         [Test]
-        public void Start_WillRunTheMainLoop_AndExecuteOneJob_MoreThanTwice_BasedOnTrigger()
+        public void ExecuteOneJob_MoreThanTwice_BasedOnTrigger()
         {
             var jobNormalMoq = new Mock<IJob>();
             jobNormalMoq.SetupGet(x => x.JobName).Returns("SimpleJob");
-            jobNormalMoq.Setup(x => x.ExcecuteAsync());
+            jobNormalMoq.Setup(x => x.ExcecuteAsync()).Returns(() => Task<JobExcecutionResult>.Factory.StartNew(() => JobExcecutionResult.Success));
             IJob jobNormal = jobNormalMoq.Object;
             string cronExpression = "0/1 * * * * * *";
             ITrigger tigger = new CronTrigger("SimpleJob", cronExpression);
@@ -65,17 +66,17 @@ namespace IntegrationTest
         }
 
         [Test]
-        public void Start_WillRunTheMainLoop_AndExecuting2Jobs_BasedOnTriggers()
+        public void Execute2Jobs_BasedOnTriggers()
         {
             List<IJob> jobs = new List<IJob>();
             List<ITrigger> triggers;
             var jobMoq = new Mock<IJob>();
             jobMoq.SetupGet(x => x.JobName).Returns("SimpleJob");
-            jobMoq.Setup(x => x.ExcecuteAsync());
+            jobMoq.Setup(x => x.ExcecuteAsync()).Returns(() => Task<JobExcecutionResult>.Factory.StartNew(() => JobExcecutionResult.Success));
             jobs.Add(jobMoq.Object);
             var jobMoq2 = new Mock<IJob>();
             jobMoq2.SetupGet(x => x.JobName).Returns("SimpleJob2");
-            jobMoq2.Setup(x => x.ExcecuteAsync());
+            jobMoq2.Setup(x => x.ExcecuteAsync()).Returns(() => Task<JobExcecutionResult>.Factory.StartNew(() => JobExcecutionResult.Success));
             jobs.Add(jobMoq2.Object);
             string cronExpression = "0/1 * * * * * *";
             var triggerstmp = jobs.Select(x => new CronTrigger(x.JobName, cronExpression)).ToList();
@@ -93,7 +94,7 @@ namespace IntegrationTest
         {
             var jobMoq = new Mock<IJob>();
             jobMoq.SetupGet(x => x.JobName).Returns("SimpleJob");
-            jobMoq.Setup(x => x.ExcecuteAsync());
+            jobMoq.Setup(x => x.ExcecuteAsync()).Returns(() => Task<JobExcecutionResult>.Factory.StartNew(() => JobExcecutionResult.Success));
             var simpleJobThrowException = new SimpleJobThrowException("SimpleJobThrowException");
             string cronExpression = "0/2 * * * * * *";
             string cronExpression2 = "0/1 * * * * * *";
@@ -105,6 +106,24 @@ namespace IntegrationTest
             jobMoq.Verify(x => x.ExcecuteAsync(), Times.AtLeastOnce);
         }
 
+
+        [Test]
+        public void Scheduler_ShouldStop_IfCancellationRequested()
+        {
+            //var jobNormalMoq = new Mock<IJob>();
+            //jobNormalMoq.SetupGet(x => x.JobName).Returns("SimpleJob");
+            //jobNormalMoq.Setup(x => x.ExcecuteAsync()).Returns(() => Task<JobExcecutionResult>.Factory.StartNew(() => JobExcecutionResult.Success));
+            //IJob jobNormal = jobNormalMoq.Object;
+            //string cronExpression = "0/1 * * * * * *";
+            //ITrigger tigger = new CronTrigger("SimpleJob", cronExpression);
+            var target = new CronScheduler(_SchedulerSetting, new TaskDeliveryManager(_TaskDeliveryManagerSetting, new JobNotificationCenter()));
+            target.Start();
+            //target.Schedule(jobNormal, tigger);
+            Thread.Sleep(new TimeSpan(0, 0, 2));
+            target.Stop();
+            Assert.AreEqual(SchedulerStatus.Stopped,target.SchedulerStatus);
+
+        }
     }
 
     public class SimpleJobThrowException : IJob

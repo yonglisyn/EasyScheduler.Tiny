@@ -12,7 +12,7 @@ namespace EasyScheduler.Tiny.Core
 
         public void NotifyResult(JobExcecutionResult result)
         {
-            throw new NotImplementedException();
+            return;
         }
     }
 }

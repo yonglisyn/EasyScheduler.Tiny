@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,7 +11,7 @@ namespace EasyScheduler.Tiny.Core
 {
     public class TaskDeliveryManager
     {
-        private List<Task<JobExcecutionResult>> _Tasks;
+        private ConcurrentBag<Task<JobExcecutionResult>> _Tasks = new ConcurrentBag<Task<JobExcecutionResult>>();
         private readonly TaskDeliveryManagerSetting _DeliveryManagerSetting;
         private readonly JobNotificationCenter _JobNotificationCenter;
 
@@ -36,14 +37,16 @@ namespace EasyScheduler.Tiny.Core
                 try
                 {
                     var task = await Task.WhenAny(_Tasks);
-                    _Tasks.Remove(task);
+                    _Tasks.TryTake(out task);
                     var result = await task;
                     _JobNotificationCenter.NotifyResult(result);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
                     //job exception
                     //todo handle
+                    Console.WriteLine(e.Message+"\n"+e.StackTrace);
+
                 }
             }
         }

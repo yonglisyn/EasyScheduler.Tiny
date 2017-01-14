@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,11 +20,17 @@ namespace EasyScheduler.Tiny.Core
             _TaskDeliveryManager = taskDeliveryManager;
         }
 
-        public void Run(JobStore jobStore, TriggerStore triggerStore)
+        public void Run(JobStore jobStore, TriggerStore triggerStore, CancellationToken token)
         {
             _FetchCycle = new FetchCycle(DateTime.Now,_SchedulerSetting.FetchRange);
             while (true)
             {
+                token.ThrowIfCancellationRequested();
+                if (token.IsCancellationRequested)
+                {
+                    Console.WriteLine("cancel requested");
+                    throw new OperationCanceledException();
+                }
                 Console.WriteLine("Main loop Run start at: " + DateTime.Now);
                 Console.WriteLine("Main loop Run init with min: " + _FetchCycle.MinNextFireTime);
                 Console.WriteLine("Main loop Run init with max: " + _FetchCycle.MaxNextFireTime);
@@ -40,8 +47,8 @@ namespace EasyScheduler.Tiny.Core
                 _FetchCycle.PushForward(timeSpan);
                 Console.WriteLine("Main loop deliver at: " + DateTime.Now);
                 var jobExecutionList = jobStore.GetJobsToBeExcuted(triggersToBeFired);
-                Task.Factory.StartNew(() => _TaskDeliveryManager.Deliver(jobExecutionList, triggersToBeFired),
-                    TaskCreationOptions.LongRunning);
+                Task.Factory.StartNew(() => _TaskDeliveryManager.Deliver(jobExecutionList, triggersToBeFired),token,
+                    TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 //todo set trigger ready again
                 if (_FetchCycle.MinNextFireTime - DateTime.Now > new TimeSpan(0, 0, 1))
                 {

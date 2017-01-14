@@ -1,6 +1,6 @@
 namespace EasyScheduler.Tiny.Core.Enums
 {
-    internal enum SchedulerStatus
+    public enum SchedulerStatus
     {
         Started = 1,
         Running = 2,

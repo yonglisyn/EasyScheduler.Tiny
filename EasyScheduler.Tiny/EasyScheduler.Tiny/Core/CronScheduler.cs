@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using EasyScheduler.Tiny.Core.Enums;
@@ -14,6 +15,8 @@ namespace EasyScheduler.Tiny.Core
         private TriggerStore _TriggerStore;
         private SchedulerStatus _SchedulerStatus;
         private readonly SchedulerRunner _SchedulerRunner;
+        private readonly CancellationTokenSource _CancellationTokenSource = new CancellationTokenSource();
+        private Task _MainTask;
 
         public CronScheduler(SchedulerSetting schedulerSetting, TaskDeliveryManager taskDeliveryManager)
         {
@@ -29,6 +32,7 @@ namespace EasyScheduler.Tiny.Core
             _JobStore = new JobStore();
             _TriggerStore = new TriggerStore();
         }
+        public SchedulerStatus SchedulerStatus { get { return _SchedulerStatus; } }
 
         public IJob GetJob(string jobName)
         {
@@ -39,6 +43,7 @@ namespace EasyScheduler.Tiny.Core
         {
             return _TriggerStore.GetTriggerBy(jobName);
         }
+
 
         public void Schedule(IJob job, ITrigger trigger)
         {
@@ -71,31 +76,46 @@ namespace EasyScheduler.Tiny.Core
         {
             _SchedulerStatus = SchedulerStatus.Started;
             //TODO NotifySchedulerListeners 
-            var cancleTokenSource = new CancellationTokenSource();
-            var task = Task.Factory.StartNew(() => _SchedulerRunner.Run(_JobStore, _TriggerStore), cancleTokenSource.Token,
-                TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            //try
+            //{
+                _MainTask = Task.Factory.StartNew(() => _SchedulerRunner.Run(_JobStore, _TriggerStore, _CancellationTokenSource.Token),
+                    _CancellationTokenSource.Token,
+                    TaskCreationOptions.LongRunning, TaskScheduler.Default)
+                    .ContinueWith(task => SchedulerNotificationCenter.NotifyStatus(SchedulerStatus.Stopped), TaskContinuationOptions.OnlyOnCanceled);
+
+                //Task.Run(() => _SchedulerRunner.Run(_JobStore, _TriggerStore, _CancellationTokenSource.Token),
+                //    _CancellationTokenSource.Token,
+                //    TaskCreationOptions.LongRunning, TaskScheduler.Default)
+                //    .ContinueWith(task => SchedulerNotificationCenter.NotifyStatus(SchedulerStatus.Stopped), TaskContinuationOptions.OnlyOnCanceled);
+            //}
+            //catch (OperationCanceledException ex)
+            //{
+            //    Console.WriteLine("I am exception");
+            //}
+            Console.WriteLine("I am over");
             _SchedulerStatus = SchedulerStatus.Running;
-            try
-            {
-                _Thread.Start();
-            }
-            catch (Exception ex)
-            {
-                Stop();
-                //todo logprovider
-                Console.WriteLine(ex.Message + "\n"+ex.StackTrace);
-            }
         }
 
         public void Stop()
         {
+            _CancellationTokenSource.Cancel();
+            Console.WriteLine("Cancel requested");
+            _MainTask.Wait();
             _SchedulerStatus = SchedulerStatus.Stopped;
-            _Thread.Join();
+            //Todo notify schedulerlistener stoped
         }
 
         public void Pause()
         {
             throw new System.NotImplementedException();
+        }
+    }
+
+    public class SchedulerNotificationCenter
+    {
+        public static void NotifyStatus(SchedulerStatus stopped)
+        {
+            Console.WriteLine("Cancelled");
         }
     }
 }

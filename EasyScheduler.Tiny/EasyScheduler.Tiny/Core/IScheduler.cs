@@ -1,7 +1,10 @@
-﻿namespace EasyScheduler.Tiny.Core
+﻿using EasyScheduler.Tiny.Core.Enums;
+
+namespace EasyScheduler.Tiny.Core
 {
     public interface IScheduler
     {
+        SchedulerStatus SchedulerStatus { get; }
         IJob GetJob(string jobName);
         ITrigger GetTrigger(string triggerName);
         void Schedule(IJob job, ITrigger trigger);
