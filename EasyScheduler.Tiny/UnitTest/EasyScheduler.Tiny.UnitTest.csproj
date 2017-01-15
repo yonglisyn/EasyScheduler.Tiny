@@ -56,7 +56,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CronSchedulerTest.cs" />
+    <Compile Include="JobStoreForTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TriggerStoreForTest.cs" />
     <Compile Include="TriggerStoreTest.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -37,6 +37,8 @@ namespace EasyScheduler.Tiny.Core
                 try
                 {
                     var task = await Task.WhenAny(_Tasks);
+
+                    //todo test cover here
                     _Tasks.TryTake(out task);
                     var result = await task;
                     _JobNotificationCenter.NotifyResult(result);

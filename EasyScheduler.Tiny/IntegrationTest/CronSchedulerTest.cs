@@ -10,12 +10,20 @@ using EasyScheduler.Tiny.Core.EnumsConstants;
 using EasyScheduler.Tiny.Core.Settings;
 using Moq;
 using NUnit.Framework;
+using UnitTest;
 
 namespace IntegrationTest
 {
     [TestFixture]
     public class CronSchedulerTest
     {
+        [TearDown]
+        public void TearDown()
+        {
+            new TriggerStoreForTest().ResetTrigger();
+            new JobStoreForTest().ResetJobStore();
+        }
+
         private readonly SchedulerSetting _SchedulerSetting = SchedulerSetting.Default();
         private readonly TaskDeliveryManagerSetting _TaskDeliveryManagerSetting = TaskDeliveryManagerSetting.Default();
         [Test]

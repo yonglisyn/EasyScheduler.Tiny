@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using EasyScheduler.Tiny;
 using EasyScheduler.Tiny.Core;
 using NUnit.Framework;
 
@@ -9,6 +8,13 @@ namespace UnitTest
     [TestFixture]
     public class TriggerStoreTest
     {
+        [TearDown]
+        public void TearDown()
+        {
+            new TriggerStoreForTest().ResetTriggerStore();
+        }
+
+
         [Test]
         public void TryGetTriggersToBeFired_ShouldReturnFalse_IfNoTrigger()
         {

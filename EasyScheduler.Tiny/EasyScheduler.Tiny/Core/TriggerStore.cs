@@ -7,9 +7,9 @@ namespace EasyScheduler.Tiny.Core
 {
     internal class TriggerStore
     {
-        private ConcurrentDictionary<string,ITrigger> _Triggers;
+        private static ConcurrentDictionary<string,ITrigger> _Triggers;
 
-        public TriggerStore()
+        static TriggerStore()
         {
             _Triggers = new ConcurrentDictionary<string, ITrigger>();
         }
@@ -26,6 +26,11 @@ namespace EasyScheduler.Tiny.Core
             return _Triggers.TryAdd(trigger.JobName, trigger);
         }
 
+        public bool TryRemove(string jobName)
+        {
+            ITrigger ignoredJob;
+            return _Triggers.TryRemove(jobName, out ignoredJob);
+        }
 
         public bool TryGetTriggersToBeFired(out List<ITrigger> toBeFired, FetchCycle fetchCycle)
         {
@@ -47,6 +52,11 @@ namespace EasyScheduler.Tiny.Core
             }
             toBeFired.ForEach(x => UpdateTrigger(x, fetchCycle.MinNextFireTime));
             return true;   
+        }
+
+        protected void Reset()
+        {
+            _Triggers.Clear();
         }
 
         private void UpdateTrigger(ITrigger trigger, DateTime baseValue)
