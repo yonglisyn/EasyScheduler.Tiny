@@ -126,34 +126,34 @@ namespace IntegrationTest
 
         }
 
-        //[Test]
-        //public void RunningJobs_ShouldContinueCurrentFireRound_IfSchedulerStoped()
-        //{
-        //    var jobOneName = "JobOne";
-        //    var jobOne = JobMoqWithDealy(jobOneName,new TimeSpan(0,0,13)); 
-        //    var jobTwoName = "JobTwo";
-        //    var jobTwo = JobMoq(jobTwoName);
-        //    string everySec = "0/1 * * * * * *";
-        //    string every30Sec = "0/30 * * * * * *";
-        //    ITrigger everySectrigger = new CronTrigger(jobOneName, everySec);
-        //    ITrigger every30Sectrigger = new CronTrigger(jobTwoName, every30Sec);
+        [Test]
+        public void RunningJobs_ShouldContinueCurrentFireRound_IfSchedulerStoped()
+        {
+            var jobOneName = "JobOne";
+            var jobOne = JobMoqWithDealy(jobOneName, new TimeSpan(0, 0, 13));
+            var jobTwoName = "JobTwo";
+            var jobTwo = JobMoq(jobTwoName);
+            string everySec = "0/1 * * * * * *";
+            string every30Sec = "0/30 * * * * * *";
+            ITrigger everySectrigger = new CronTrigger(jobOneName, everySec);
+            ITrigger every30Sectrigger = new CronTrigger(jobTwoName, every30Sec);
 
-        //    var target = new CronScheduler(_SchedulerSetting, new TaskDeliveryManager(_TaskDeliveryManagerSetting, new JobNotificationCenter()));
+            var target = new CronScheduler(_SchedulerSetting, new TaskDeliveryManager(_TaskDeliveryManagerSetting, new JobNotificationCenter()));
 
-        //    target.Schedule(jobOne.Object, everySectrigger);
-        //    target.Schedule(jobTwo.Object, every30Sectrigger);
-        //    target.Start();
+            target.Schedule(jobOne.Object, everySectrigger);
+            target.Schedule(jobTwo.Object, every30Sectrigger);
+            target.Start();
 
-        //    Thread.Sleep(new TimeSpan(0,0,12));
-        //    target.Stop();
-        //    while (true)
-        //    {
-        //        var job = target.GetJob(jobOneName);
-        //        if(job.JobStatus == JobStatus.Running) break;
-        //    }
-        //    Assert.AreEqual(SchedulerStatus.Stopped,target.SchedulerStatus);
+            Thread.Sleep(new TimeSpan(0, 0, 12));
+            target.Stop();
+            while (true)
+            {
+                var job = target.GetJob(jobOneName);
+                if (job.JobStatus == JobStatus.Running) break;
+            }
+            Assert.AreEqual(SchedulerStatus.Stopped, target.SchedulerStatus);
 
-        //}
+        }
 
         private static Mock<IJob> JobMoq(string simplejob)
         {

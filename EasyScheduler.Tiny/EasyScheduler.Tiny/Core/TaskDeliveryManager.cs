@@ -41,6 +41,7 @@ namespace EasyScheduler.Tiny.Core
                     //todo test cover here
                     _Tasks.TryTake(out task);
                     var result = await task;
+                    JobStore.TryUpdateJobStatus(result.JobName, JobStatus.Running);
                     _JobNotificationCenter.NotifyResult(result);
                 }
                 catch (Exception e)
@@ -66,7 +67,9 @@ namespace EasyScheduler.Tiny.Core
                 {
                     //Todo check what happens if not async await
                     _Tasks.Add(Task.Run(async () => await job.ExcecuteAsync()));
-                    _JobNotificationCenter.NotifyJobSwitchStatus(JobStatus.Running, trigger.CurrentFireTime);
+                    job.JobStatus = JobStatus.Running;
+                    JobStore.TryUpdate(job);
+                    _JobNotificationCenter.NotifyJobSwitchStatus(job.JobStatus, trigger.CurrentFireTime);
                     break;
                 }
                 if (triggerTime < now)
