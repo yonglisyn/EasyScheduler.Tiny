@@ -6,7 +6,7 @@ namespace EasyScheduler.Tiny.Core
     public interface IJob
     {
         string JobName { get; }
-        JobStatus JobStatus { get; }
+        JobStatus JobStatus { get; set; }
         Task<JobExcecutionResult> ExcecuteAsync();
     }
 }

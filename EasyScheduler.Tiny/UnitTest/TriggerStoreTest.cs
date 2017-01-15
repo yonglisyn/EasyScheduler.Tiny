@@ -43,5 +43,13 @@ namespace UnitTest
             var actualTrigger = target.GetTriggerBy(jobName1);
             Assert.AreEqual(nextFireTime, actualTrigger.CurrentFireTime);
         }
+
+        [Test]
+        public void GetTriggerBy_ShouldReturnNull_IfNoTriggerFound()
+        {
+            var target = new TriggerStore();
+            var actual = target.GetTriggerBy("dummyName");
+            Assert.IsNull(actual);
+        }
     }
 }

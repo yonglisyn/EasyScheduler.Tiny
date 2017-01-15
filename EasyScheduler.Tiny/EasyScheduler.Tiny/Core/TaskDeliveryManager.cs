@@ -76,10 +76,5 @@ namespace EasyScheduler.Tiny.Core
                 Thread.Sleep(10);
             }
         }
-
-        private void NotifyJobListeners(JobExcecutionResult result)
-        {
-            
-        }
     }
 }

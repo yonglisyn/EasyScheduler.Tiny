@@ -58,6 +58,7 @@
     <Compile Include="Core\IScheduler.cs" />
     <Compile Include="Core\ITrigger.cs" />
     <Compile Include="Core\JobExcecutionResult.cs" />
+    <Compile Include="Core\JobExecDetail.cs" />
     <Compile Include="Core\JobFireHistory.cs" />
     <Compile Include="Core\JobNotificationCenter.cs" />
     <Compile Include="Core\JobStore.cs" />

@@ -21,7 +21,7 @@ namespace IntegrationTest
         [Test]
         public void ScheduleJob_ShouldAddJobToJobStore_And_ShouldAddTriggerToTriggerStore()
         {
-            IJob job = new SimpleJob(typeof(SimpleJob).Name,typeof(SimpleTrigger).ToString());
+            IJob job = new SimpleJob(typeof(SimpleJob).Name);
             ITrigger trigger = new SimpleTrigger(typeof(SimpleJob).Name);
 
             var target = new CronScheduler(_SchedulerSetting,new TaskDeliveryManager(_TaskDeliveryManagerSetting,new JobNotificationCenter()));
@@ -122,31 +122,65 @@ namespace IntegrationTest
         [Test]
         public void RunningJobs_ShouldContinueCurrentFireRound_IfSchedulerStoped()
         {
-            var jobNormalMoq = new Mock<IJob>();
-            jobNormalMoq.SetupGet(x => x.JobName).Returns("SimpleJob");
-            jobNormalMoq.Setup(x => x.ExcecuteAsync()).Returns(() => Task<JobExcecutionResult>.Factory.StartNew(() => JobExcecutionResult.Success));
-            IJob jobNormal = jobNormalMoq.Object;
-            string cronExpression = "0/1 * * * * * *";
-            ITrigger trigger = new CronTrigger("SimpleJob", cronExpression);
+            var jobOneName = "JobOne";
+            var jobOne = JobMoqWithDealy(jobOneName,new TimeSpan(0,0,13)); 
+            var jobTwoName = "JobTwo";
+            var jobTwo = JobMoq(jobTwoName);
+            string everySec = "0/1 * * * * * *";
+            string every30Sec = "0/30 * * * * * *";
+            ITrigger everySectrigger = new CronTrigger(jobOneName, everySec);
+            ITrigger every30Sectrigger = new CronTrigger(jobTwoName, every30Sec);
+
             var target = new CronScheduler(_SchedulerSetting, new TaskDeliveryManager(_TaskDeliveryManagerSetting, new JobNotificationCenter()));
+
+            target.Schedule(jobOne.Object, everySectrigger);
+            target.Schedule(jobTwo.Object, every30Sectrigger);
             target.Start();
-            target.Schedule(jobNormal, trigger);
-            Thread.Sleep(new TimeSpan(0, 0, 2));
+
+            Thread.Sleep(new TimeSpan(0,0,12));
             target.Stop();
+            while (true)
+            {
+                var job = target.GetJob(jobOneName);
+                if(job.JobStatus == JobStatus.Running) break;
+            }
             Assert.AreEqual(SchedulerStatus.Stopped,target.SchedulerStatus);
 
+        }
+
+        private static Mock<IJob> JobMoq(string simplejob)
+        {
+            var jobNormalMoq = new Mock<IJob>();
+            jobNormalMoq.SetupGet(x => x.JobName).Returns(simplejob);
+            jobNormalMoq.Setup(x => x.ExcecuteAsync())
+                .Returns(() => Task<JobExcecutionResult>.Factory.StartNew(() => JobExcecutionResult.Success));
+            return jobNormalMoq;
+        }
+
+        private static Mock<IJob> JobMoqWithDealy(string simplejob, TimeSpan delay)
+        {
+            var jobNormalMoq = new Mock<IJob>();
+            jobNormalMoq.SetupGet(x => x.JobName).Returns(simplejob);
+            jobNormalMoq.Setup(x => x.ExcecuteAsync())
+                .Returns(async () =>
+                {
+                    await Task.Delay(delay);
+                    return JobExcecutionResult.Success;
+                });
+            return jobNormalMoq;
         }
     }
 
     public class SimpleJobThrowException : IJob
     {
-        public SimpleJobThrowException(string toString)
+        public SimpleJobThrowException(string jobName, JobStatus status = JobStatus.Idle)
         {
-            JobName = toString;
+            JobName = jobName;
+            JobStatus = status;
         }
 
         public string JobName { get; private set; }
-        public JobStatus JobStatus { get; private set; }
+        public JobStatus JobStatus { get; set; }
 
         public async Task<JobExcecutionResult> ExcecuteAsync()
         {
@@ -178,17 +212,14 @@ namespace IntegrationTest
 
     public class SimpleJob : IJob
     {
-        private string _TiggerName;
-
-        public SimpleJob(string jobName, string tiggerName, JobStatus status = JobStatus.Idle)
+        public SimpleJob(string jobName, JobStatus status = JobStatus.Idle)
         {
             JobName = jobName;
-            _TiggerName = tiggerName;
             JobStatus = status;
         }
 
         public string JobName { get; private set; }
-        public JobStatus JobStatus { get; private set; }
+        public JobStatus JobStatus { get; set; }
 
         public async Task<JobExcecutionResult> ExcecuteAsync()
         {
