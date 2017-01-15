@@ -10,7 +10,6 @@ using EasyScheduler.Tiny.Core.EnumsConstants;
 using EasyScheduler.Tiny.Core.Settings;
 using Moq;
 using NUnit.Framework;
-using UnitTest;
 
 namespace IntegrationTest
 {
@@ -20,8 +19,8 @@ namespace IntegrationTest
         [TearDown]
         public void TearDown()
         {
-            new TriggerStoreForTest().ResetTrigger();
-            new JobStoreForTest().ResetJobStore();
+            TriggerStore.Reset();
+            JobStore.Reset();
         }
 
         private readonly SchedulerSetting _SchedulerSetting = SchedulerSetting.Default();

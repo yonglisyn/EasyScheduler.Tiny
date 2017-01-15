@@ -19,7 +19,7 @@ namespace EasyScheduler.Tiny.Core
             _TaskDeliveryManager = taskDeliveryManager;
         }
 
-        public void Run(JobStore jobStore, TriggerStore triggerStore, CancellationToken token)
+        public void Run(CancellationToken token)
         {
             _FetchCycle = new FetchCycle(DateTime.Now,_SchedulerSetting.FetchRange);
             while (true)
@@ -35,7 +35,7 @@ namespace EasyScheduler.Tiny.Core
                 Console.WriteLine("Main loop Run init with min: " + _FetchCycle.MinNextFireTime);
                 Console.WriteLine("Main loop Run init with max: " + _FetchCycle.MaxNextFireTime);
                 List<ITrigger> triggersToBeFired;
-                if (!triggerStore.TryGetTriggersToBeFired(out triggersToBeFired, _FetchCycle))
+                if (!TriggerStore.TryGetTriggersToBeFired(out triggersToBeFired, _FetchCycle))
                 {
                     Thread.Sleep(new TimeSpan(0,0,10));
                     _FetchCycle.PushForward(_SchedulerSetting.RunnerCycleIncrement);
@@ -46,7 +46,7 @@ namespace EasyScheduler.Tiny.Core
                 var timeSpan = _FetchCycle.GetMinTimeSpanToBePushForward(_SchedulerSetting.RunnerCycleIncrement, minCurrentFireTime);
                 _FetchCycle.PushForward(timeSpan);
                 Console.WriteLine("Main loop deliver at: " + DateTime.Now);
-                var jobExecutionList = jobStore.GetJobsToBeExcuted(triggersToBeFired.Select(x=>x.JobName).ToList());
+                var jobExecutionList = JobStore.GetJobsToBeExcuted(triggersToBeFired.Select(x=>x.JobName).ToList());
                 Task.Factory.StartNew(() => _TaskDeliveryManager.Deliver(jobExecutionList, triggersToBeFired),token,
                     TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 //todo set trigger ready again

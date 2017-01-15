@@ -5,34 +5,34 @@ using System.Linq;
 
 namespace EasyScheduler.Tiny.Core
 {
-    internal class TriggerStore
+    internal static class TriggerStore
     {
-        private static ConcurrentDictionary<string,ITrigger> _Triggers;
+        private static ConcurrentDictionary<string,ITrigger> _Triggers = new ConcurrentDictionary<string, ITrigger>();
 
-        static TriggerStore()
-        {
-            _Triggers = new ConcurrentDictionary<string, ITrigger>();
-        }
+        //static TriggerStore()
+        //{
+        //    _Triggers = new ConcurrentDictionary<string, ITrigger>();
+        //}
 
-        public ITrigger GetTriggerBy(string jobName)
+        public static ITrigger GetTriggerBy(string jobName)
         {
             ITrigger trigger;
             _Triggers.TryGetValue(jobName, out trigger);
             return trigger;
         }
 
-        public bool TryAdd(ITrigger trigger)
+        public static bool TryAdd(ITrigger trigger)
         {
             return _Triggers.TryAdd(trigger.JobName, trigger);
         }
 
-        public bool TryRemove(string jobName)
+        public static bool TryRemove(string jobName)
         {
             ITrigger ignoredJob;
             return _Triggers.TryRemove(jobName, out ignoredJob);
         }
 
-        public bool TryGetTriggersToBeFired(out List<ITrigger> toBeFired, FetchCycle fetchCycle)
+        public static bool TryGetTriggersToBeFired(out List<ITrigger> toBeFired, FetchCycle fetchCycle)
         {
             if (_Triggers.Count == 0)
             {
@@ -54,12 +54,12 @@ namespace EasyScheduler.Tiny.Core
             return true;   
         }
 
-        protected void Reset()
+        public static void Reset()
         {
             _Triggers.Clear();
         }
 
-        private void UpdateTrigger(ITrigger trigger, DateTime baseValue)
+        private static void UpdateTrigger(ITrigger trigger, DateTime baseValue)
         {
             //todo review may not need this CurrentFireTime
             trigger.CurrentFireTime = trigger.GetNextFireTime(baseValue);

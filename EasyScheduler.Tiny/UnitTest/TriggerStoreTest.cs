@@ -11,17 +11,16 @@ namespace UnitTest
         [TearDown]
         public void TearDown()
         {
-            new TriggerStoreForTest().ResetTriggerStore();
+            TriggerStore.Reset();
         }
 
 
         [Test]
         public void TryGetTriggersToBeFired_ShouldReturnFalse_IfNoTrigger()
         {
-            var target= new TriggerStore();
             List<ITrigger> toBeFired;
             FetchCycle fetchCycle = new FetchCycle(new DateTime(2016, 1, 1), new TimeSpan(30,0,0,0));
-            var actual = target.TryGetTriggersToBeFired(out toBeFired, fetchCycle);
+            var actual = TriggerStore.TryGetTriggersToBeFired(out toBeFired, fetchCycle);
 
             Assert.AreEqual(false,actual);
             Assert.AreEqual(0,toBeFired.Count);
@@ -30,32 +29,38 @@ namespace UnitTest
         [Test]
         public void TryGetTriggersToBeFired_ShouldReturnTure_AndGetExpectedTriggers_AndUpdateTrigger()
         {
-            var target= new TriggerStore();
-            string jobName1="TestJob1";
-            var triggerInRangeMoq = new CronTrigger(jobName1,"0 0 0 2 1 * 2016");
+            string jobName1 = "TestJob1";
+            var triggerInRangeMoq = new CronTrigger(jobName1, "0 0 0 2 1 * 2016");
             DateTime nextFireTime = triggerInRangeMoq.GetNextFireTime(new DateTime(2016, 1, 1, 0, 0, 0));
 
-            string jobName2 ="TestJob2";
+            string jobName2 = "TestJob2";
             var triggerNotInRangeMoq = new CronTrigger(jobName2, "0 0 0 2 1 * 2015");
-            target.TryAdd(triggerNotInRangeMoq);
-            target.TryAdd(triggerInRangeMoq);
+            TriggerStore.TryAdd(triggerNotInRangeMoq);
+            TriggerStore.TryAdd(triggerInRangeMoq);
 
             List<ITrigger> toBeFired;
-            FetchCycle fetchCycle = new FetchCycle(new DateTime(2016, 1, 1,0,0,0), new TimeSpan(30, 0, 0, 0));
-            var actual = target.TryGetTriggersToBeFired(out toBeFired, fetchCycle);
+            FetchCycle fetchCycle = new FetchCycle(new DateTime(2016, 1, 1, 0, 0, 0), new TimeSpan(30, 0, 0, 0));
+            var actual = TriggerStore.TryGetTriggersToBeFired(out toBeFired, fetchCycle);
 
-            Assert.AreEqual(true,actual);
-            Assert.AreEqual(1,toBeFired.Count);
-            var actualTrigger = target.GetTriggerBy(jobName1);
+            Assert.AreEqual(true, actual);
+            Assert.AreEqual(1, toBeFired.Count);
+            var actualTrigger = TriggerStore.GetTriggerBy(jobName1);
             Assert.AreEqual(nextFireTime, actualTrigger.CurrentFireTime);
         }
 
         [Test]
         public void GetTriggerBy_ShouldReturnNull_IfNoTriggerFound()
         {
-            var target = new TriggerStore();
-            var actual = target.GetTriggerBy("dummyName");
+            var actual = TriggerStore.GetTriggerBy("dummyName");
             Assert.IsNull(actual);
+        }
+
+        [Test]
+        public void GetTriggerBy_ShouldReturnValidTrigger()
+        {
+            TriggerStore.TryAdd(new CronTrigger("DummyOne", "0 0 0 0 0 0 0"));
+            var actual = TriggerStore.GetTriggerBy("DummyOne");
+            Assert.AreEqual("DummyOne",actual.JobName);
         }
     }
 }

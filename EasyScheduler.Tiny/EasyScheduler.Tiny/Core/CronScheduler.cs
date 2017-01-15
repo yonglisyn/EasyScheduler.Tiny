@@ -11,8 +11,6 @@ namespace EasyScheduler.Tiny.Core
     public class CronScheduler: IScheduler
     {
         private Thread _Thread;
-        private JobStore _JobStore;
-        private TriggerStore _TriggerStore;
         private SchedulerStatus _SchedulerStatus;
         private readonly SchedulerRunner _SchedulerRunner;
         private readonly CancellationTokenSource _CancellationTokenSource = new CancellationTokenSource();
@@ -21,27 +19,23 @@ namespace EasyScheduler.Tiny.Core
         public CronScheduler(SchedulerSetting schedulerSetting, TaskDeliveryManager taskDeliveryManager)
         {
             _SchedulerRunner = new SchedulerRunner(schedulerSetting,taskDeliveryManager);
-            _JobStore = new JobStore();
-            _TriggerStore = new TriggerStore();
         }
 
         public CronScheduler()
         {
             var schedulerSetting = SchedulerSetting.Default();
             _SchedulerRunner = new SchedulerRunner(schedulerSetting, new TaskDeliveryManager(TaskDeliveryManagerSetting.Default(), new JobNotificationCenter()));
-            _JobStore = new JobStore();
-            _TriggerStore = new TriggerStore();
         }
         public SchedulerStatus SchedulerStatus { get { return _SchedulerStatus; } }
 
         public IJob GetJob(string jobName)
         {
-            return _JobStore.TryGet(jobName);
+            return JobStore.TryGet(jobName);
         }
 
         public ITrigger GetTrigger(string jobName)
         {
-            return _TriggerStore.GetTriggerBy(jobName);
+            return TriggerStore.GetTriggerBy(jobName);
         }
 
 
@@ -52,8 +46,8 @@ namespace EasyScheduler.Tiny.Core
                 throw new EasySchedulerException(string.Format("IJob {0} and ITrigger {1} must have same JobName!",
                     job.JobName, trigger.JobName));
             }
-            _JobStore.TryAdd(job);
-            _TriggerStore.TryAdd(trigger);
+            JobStore.TryAdd(job);
+            TriggerStore.TryAdd(trigger);
             Console.WriteLine("Scheduled on " + DateTime.Now);
         }
 
@@ -78,7 +72,7 @@ namespace EasyScheduler.Tiny.Core
             //TODO NotifySchedulerListeners 
             //try
             //{
-                _MainTask = Task.Factory.StartNew(() => _SchedulerRunner.Run(_JobStore, _TriggerStore, _CancellationTokenSource.Token),
+                _MainTask = Task.Factory.StartNew(() => _SchedulerRunner.Run(_CancellationTokenSource.Token),
                     _CancellationTokenSource.Token,
                     TaskCreationOptions.LongRunning, TaskScheduler.Default)
                     .ContinueWith(task => SchedulerNotificationCenter.NotifyStatus(SchedulerStatus.Stopped), TaskContinuationOptions.OnlyOnCanceled);

@@ -4,33 +4,28 @@ using System.Linq;
 
 namespace EasyScheduler.Tiny.Core
 {
-    internal class JobStore
+    internal static class JobStore
     {
-        private static ConcurrentDictionary<string,IJob> _Jobs;
+        private static ConcurrentDictionary<string,IJob> _Jobs= new ConcurrentDictionary<string, IJob>();
 
-        static JobStore()
-        {
-            _Jobs = new ConcurrentDictionary<string, IJob>();
-        }
-
-        public IJob TryGet(string jobName)
+        public static IJob TryGet(string jobName)
         {
             IJob job;
             _Jobs.TryGetValue(jobName,out job);
             return job;
         }
 
-        public void TryAdd(IJob job)
+        public static void TryAdd(IJob job)
         {
             _Jobs.TryAdd(job.JobName, job);
         }
 
-        protected void Reset()
+        public static void Reset()
         {
             _Jobs.Clear();
         }
 
-        public List<IJob> GetJobsToBeExcuted(List<string> triggersToBeFired)
+        public static List<IJob> GetJobsToBeExcuted(List<string> triggersToBeFired)
         {
             return triggersToBeFired.Select(x =>
             {
