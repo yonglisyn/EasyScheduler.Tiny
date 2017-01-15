@@ -6,26 +6,33 @@ namespace EasyScheduler.Tiny.Core
 {
     internal class JobStore
     {
-        private ConcurrentBag<IJob> _Jobs;
+        private ConcurrentDictionary<string,IJob> _Jobs;
 
         internal JobStore()
         {
-            _Jobs = new ConcurrentBag<IJob>();
+            _Jobs = new ConcurrentDictionary<string, IJob>();
         }
 
-        public IJob Get(string jobName)
+        public IJob TryGet(string jobName)
         {
-            return _Jobs.FirstOrDefault(x => x.JobName == jobName);
+            IJob job;
+            _Jobs.TryGetValue(jobName,out job);
+            return job;
         }
 
-        public void Add(IJob job)
+        public void TryAdd(IJob job)
         {
-            _Jobs.Add(job);
+            _Jobs.TryAdd(job.JobName, job);
         }
 
-        public List<IJob> GetJobsToBeExcuted(List<ITrigger> triggersToBeFired)
+        public List<IJob> GetJobsToBeExcuted(List<string> triggersToBeFired)
         {
-            return _Jobs.Where(x => triggersToBeFired.Exists(y => y.JobName == x.JobName)).ToList();
+            return triggersToBeFired.Select(x =>
+            {
+                IJob job;
+                _Jobs.TryGetValue(x, out job);
+                return job;
+            }).ToList();
         }
     }
 }

@@ -36,7 +36,7 @@ namespace EasyScheduler.Tiny.Core
 
         public IJob GetJob(string jobName)
         {
-            return _JobStore.Get(jobName);
+            return _JobStore.TryGet(jobName);
         }
 
         public ITrigger GetTrigger(string jobName)
@@ -52,7 +52,7 @@ namespace EasyScheduler.Tiny.Core
                 throw new EasySchedulerException(string.Format("IJob {0} and ITrigger {1} must have same JobName!",
                     job.JobName, trigger.JobName));
             }
-            _JobStore.Add(job);
+            _JobStore.TryAdd(job);
             _TriggerStore.TryAdd(trigger);
             Console.WriteLine("Scheduled on " + DateTime.Now);
         }

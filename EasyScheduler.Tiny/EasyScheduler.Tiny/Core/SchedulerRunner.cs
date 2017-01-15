@@ -46,7 +46,7 @@ namespace EasyScheduler.Tiny.Core
                 var timeSpan = _FetchCycle.GetMinTimeSpanToBePushForward(_SchedulerSetting.RunnerCycleIncrement, minCurrentFireTime);
                 _FetchCycle.PushForward(timeSpan);
                 Console.WriteLine("Main loop deliver at: " + DateTime.Now);
-                var jobExecutionList = jobStore.GetJobsToBeExcuted(triggersToBeFired);
+                var jobExecutionList = jobStore.GetJobsToBeExcuted(triggersToBeFired.Select(x=>x.JobName).ToList());
                 Task.Factory.StartNew(() => _TaskDeliveryManager.Deliver(jobExecutionList, triggersToBeFired),token,
                     TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 //todo set trigger ready again
