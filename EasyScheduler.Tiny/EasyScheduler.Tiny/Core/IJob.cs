@@ -7,6 +7,6 @@ namespace EasyScheduler.Tiny.Core
     {
         string JobName { get; }
         JobStatus JobStatus { get; set; }
-        Task<JobExcecutionResult> ExcecuteAsync();
+        Task<JobExecDetail> ExcecuteAsync();
     }
 }

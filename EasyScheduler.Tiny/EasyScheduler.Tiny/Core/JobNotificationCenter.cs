@@ -10,7 +10,7 @@ namespace EasyScheduler.Tiny.Core
             //todo need to be fire and forget to do not take up time to continue next loop
         }
 
-        public void NotifyResult(JobExcecutionResult result)
+        public void NotifyResult(JobExecDetail result)
         {
             return;
         }

@@ -38,11 +38,11 @@ namespace UnitTest
             public string JobName { get; private set; }
             public JobStatus JobStatus { get; set; }
 
-            public async Task<JobExcecutionResult> ExcecuteAsync()
+            public async Task<JobExecDetail> ExcecuteAsync()
             {
                 await Task.Delay(10);
                 Console.WriteLine("I am fired at " + DateTime.Now.ToString(CultureInfo.InvariantCulture));
-                return JobExcecutionResult.Success;
+                return new JobExecDetail(JobExecResult.Success, JobName);
             }
 
         }

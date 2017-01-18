@@ -31,9 +31,7 @@ namespace EasyScheduler.Tiny.Core
                     Console.WriteLine("cancel requested");
                     throw new OperationCanceledException();
                 }
-                Console.WriteLine("Main loop Run start at: " + DateTime.Now);
                 Console.WriteLine("Main loop Run init with min: " + _FetchCycle.MinNextFireTime);
-                Console.WriteLine("Main loop Run init with max: " + _FetchCycle.MaxNextFireTime);
                 List<ITrigger> triggersToBeFired;
                 if (!TriggerStore.TryGetTriggersToBeFired(out triggersToBeFired, _FetchCycle))
                 {
@@ -45,7 +43,6 @@ namespace EasyScheduler.Tiny.Core
                 var minCurrentFireTime = triggersToBeFired.Min(x => x.CurrentFireTime);
                 var timeSpan = _FetchCycle.GetMinTimeSpanToBePushForward(_SchedulerSetting.RunnerCycleIncrement, minCurrentFireTime);
                 _FetchCycle.PushForward(timeSpan);
-                Console.WriteLine("Main loop deliver at: " + DateTime.Now);
                 var jobExecutionList = JobStore.GetJobsToBeExcuted(triggersToBeFired.Select(x=>x.JobName).ToList());
                 Task.Factory.StartNew(() => _TaskDeliveryManager.Deliver(jobExecutionList, triggersToBeFired),token,
                     TaskCreationOptions.LongRunning, TaskScheduler.Default);

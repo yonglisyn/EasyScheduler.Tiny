@@ -6,12 +6,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using EasyScheduler.Tiny.Core.EnumsConstants;
 using EasyScheduler.Tiny.Core.Settings;
+using Newtonsoft.Json;
 
 namespace EasyScheduler.Tiny.Core
 {
     public class TaskDeliveryManager
     {
-        private ConcurrentBag<Task<JobExcecutionResult>> _Tasks = new ConcurrentBag<Task<JobExcecutionResult>>();
+        private ConcurrentDictionary<string, Task<JobExecDetail>> _Tasks;
         private readonly TaskDeliveryManagerSetting _DeliveryManagerSetting;
         private readonly JobNotificationCenter _JobNotificationCenter;
 
@@ -19,6 +20,7 @@ namespace EasyScheduler.Tiny.Core
         {
             _DeliveryManagerSetting = deliveryManagerSetting;
             _JobNotificationCenter = jobNotificationCenter;
+            _Tasks = new ConcurrentDictionary<string, Task<JobExecDetail>>();
         }
 
         public async void Deliver(List<IJob> jobExecutionList, List<ITrigger> triggersToBeFired)
@@ -31,16 +33,23 @@ namespace EasyScheduler.Tiny.Core
                 var job = jobExecutionList.First(y => y.JobName == trigger.JobName);
                 deliverTask.Add(Task.Run(() => TryDeliver(trigger, job)));
             }
+            var b = _Tasks == null ? "null in thread:" : _Tasks.Count.ToString();
+            Console.WriteLine("36:::"+b +":::"+ Thread.CurrentThread.ManagedThreadId);
             await Task.WhenAll(deliverTask);
+            var c = _Tasks == null ? "null in thread:" : _Tasks.Count.ToString();
+            Console.WriteLine("39:::"+c + ":::" + Thread.CurrentThread.ManagedThreadId);
             while (_Tasks.Count>0)
             {
                 try
                 {
-                    var task = await Task.WhenAny(_Tasks);
-
-                    //todo test cover here
-                    _Tasks.TryTake(out task);
+                    var task = await Task.WhenAny(_Tasks.Values);
+                    Console.WriteLine(task);
                     var result = await task;
+                    Console.WriteLine("48 "+JsonConvert.SerializeObject(result));
+                    //todo test cover here
+                    Task<JobExecDetail> tmp;
+                    var d = _Tasks == null ? "null in thread:" : _Tasks.Count.ToString();
+                    Console.WriteLine("52:::" + d + ":::" + Thread.CurrentThread.ManagedThreadId); _Tasks.TryRemove(result.JobName, out tmp);
                     JobStore.TryUpdateJobStatus(result.JobName, JobStatus.Running);
                     _JobNotificationCenter.NotifyResult(result);
                 }
@@ -66,7 +75,9 @@ namespace EasyScheduler.Tiny.Core
                 if (triggerTime >= now.AddMilliseconds(-10) && triggerTime <= now.AddMilliseconds(10))
                 {
                     //Todo check what happens if not async await
-                    _Tasks.Add(Task.Run(async () => await job.ExcecuteAsync()));
+                    Console.WriteLine("TryDeliver RUNRURNRURR "+DateTime.Now);
+                    _Tasks.TryAdd(job.JobName,Task.Run(async ()=> await job.ExcecuteAsync()));
+                    Console.WriteLine("TryDeliver RUNRURNRURR 2" + DateTime.Now);
                     job.JobStatus = JobStatus.Running;
                     JobStore.TryUpdate(job);
                     _JobNotificationCenter.NotifyJobSwitchStatus(job.JobStatus, trigger.CurrentFireTime);
